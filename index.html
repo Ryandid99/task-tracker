@@ -64,11 +64,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ── Layout ── */
-  .layout {
-    display: flex;
-    min-height: 100vh;
-  }
+  .layout { display: flex; min-height: 100vh; }
 
   /* ── Sidebar ── */
   .sidebar {
@@ -82,683 +78,414 @@
   }
 
   .sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 4px 8px;
-    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 8px; margin-bottom: 20px;
   }
 
   .sidebar-brand .logo {
-    width: 22px;
-    height: 22px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 12px;
+    width: 22px; height: 22px; background: var(--accent);
+    border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; color: white; font-weight: 700; font-size: 12px;
   }
 
-  .sidebar-brand span {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-primary);
-  }
-
-  .sidebar-section {
-    margin-bottom: 24px;
-  }
+  .sidebar-brand span { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+  .sidebar-section { margin-bottom: 24px; }
 
   .sidebar-section-title {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-tertiary);
-    padding: 0 8px;
-    margin-bottom: 6px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-tertiary); padding: 0 8px; margin-bottom: 6px;
   }
 
   .sidebar-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.1s;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
+    display: flex; align-items: center; gap: 10px; padding: 6px 8px;
+    border-radius: 6px; cursor: pointer; color: var(--text-secondary);
+    font-size: 13px; font-weight: 500; transition: all 0.1s;
+    border: none; background: none; width: 100%; text-align: left;
   }
 
-  .sidebar-item:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .sidebar-item.active {
-    background: var(--accent-subtle);
-    color: var(--accent);
-  }
-
-  .sidebar-item .icon {
-    width: 18px;
-    text-align: center;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-
-  .sidebar-item .count {
-    margin-left: auto;
-    font-size: 12px;
-    color: var(--text-tertiary);
-    font-weight: 400;
-  }
-
+  .sidebar-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .sidebar-item.active { background: var(--accent-subtle); color: var(--accent); }
+  .sidebar-item .icon { width: 18px; text-align: center; font-size: 14px; flex-shrink: 0; }
+  .sidebar-item .count { margin-left: auto; font-size: 12px; color: var(--text-tertiary); font-weight: 400; }
   .sidebar-spacer { flex: 1; }
+  .sidebar-footer { padding-top: 12px; border-top: 1px solid var(--border); }
 
-  .sidebar-footer {
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ── Main content ── */
-  .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
+  /* ── Main ── */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
   /* ── Toolbar ── */
   .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-surface);
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--bg-surface);
   }
 
-  .toolbar-title {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-primary);
-    margin-right: 12px;
-  }
+  .toolbar-title { font-weight: 600; font-size: 14px; color: var(--text-primary); margin-right: 12px; }
 
-  .toolbar-search {
-    flex: 1;
-    max-width: 280px;
-    position: relative;
-  }
+  .toolbar-search { flex: 1; max-width: 280px; position: relative; }
 
   .toolbar-search input {
-    width: 100%;
-    padding: 6px 10px 6px 30px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 13px;
-    color: var(--text-primary);
-    outline: none;
-    font-family: var(--font);
-    transition: border-color 0.15s;
+    width: 100%; padding: 6px 10px 6px 30px; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px;
+    color: var(--text-primary); outline: none; font-family: var(--font); transition: border-color 0.15s;
   }
 
-  .toolbar-search input:focus {
-    border-color: var(--accent);
-  }
-
+  .toolbar-search input:focus { border-color: var(--accent); }
   .toolbar-search input::placeholder { color: var(--text-tertiary); }
 
   .toolbar-search .search-icon {
-    position: absolute;
-    left: 9px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-tertiary);
-    font-size: 13px;
-    pointer-events: none;
+    position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+    color: var(--text-tertiary); font-size: 13px; pointer-events: none;
   }
 
-  .toolbar-filters {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-  }
+  .toolbar-filters { display: flex; gap: 4px; margin-left: auto; }
 
   .filter-btn {
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: var(--font);
-    color: var(--text-secondary);
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: all 0.1s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    padding: 5px 10px; font-size: 12px; font-weight: 500; font-family: var(--font);
+    color: var(--text-secondary); background: transparent; border: 1px solid transparent;
+    border-radius: var(--radius); cursor: pointer; transition: all 0.1s;
+    display: flex; align-items: center; gap: 4px;
   }
 
-  .filter-btn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
+  .filter-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 
   .filter-btn select {
-    background: transparent;
-    border: none;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    outline: none;
-    padding-right: 2px;
+    background: transparent; border: none; color: inherit;
+    font: inherit; cursor: pointer; outline: none; padding-right: 2px;
   }
 
-  .filter-btn select option {
-    background: var(--bg-elevated);
-    color: var(--text-primary);
+  .filter-btn select option { background: var(--bg-elevated); color: var(--text-primary); }
+
+  /* ── AI Chat Panel ── */
+  .ai-panel {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-base);
+    overflow: hidden;
+    transition: max-height 0.3s;
   }
+
+  .ai-panel.collapsed { max-height: 44px; }
+  .ai-panel.expanded { max-height: 500px; }
+
+  .ai-toggle {
+    display: flex; align-items: center; gap: 8px; padding: 10px 24px;
+    cursor: pointer; user-select: none;
+  }
+
+  .ai-toggle .ai-icon {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: linear-gradient(135deg, #7c5cfc, #c084fc);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: white; font-weight: 700;
+  }
+
+  .ai-toggle span {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  }
+
+  .ai-toggle .ai-shortcut {
+    margin-left: auto; font-size: 10px; color: var(--text-tertiary);
+  }
+
+  .ai-toggle .ai-shortcut kbd {
+    font-size: 10px; font-family: var(--font); padding: 1px 5px;
+    border-radius: 3px; background: var(--bg-elevated);
+    border: 1px solid var(--border); color: var(--text-tertiary); font-weight: 500;
+  }
+
+  .ai-body { padding: 0 24px 16px; }
+
+  .ai-messages {
+    max-height: 200px; overflow-y: auto; margin-bottom: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .ai-msg {
+    font-size: 13px; line-height: 1.5; padding: 8px 12px;
+    border-radius: 8px; max-width: 90%;
+  }
+
+  .ai-msg.user {
+    background: var(--accent-subtle); color: var(--accent);
+    align-self: flex-end;
+  }
+
+  .ai-msg.assistant {
+    background: var(--bg-elevated); color: var(--text-primary);
+    border: 1px solid var(--border-light); align-self: flex-start;
+  }
+
+  .ai-msg.system {
+    background: var(--success-subtle); color: var(--success);
+    align-self: center; font-size: 12px; text-align: center;
+  }
+
+  .ai-msg.error {
+    background: var(--danger-subtle); color: var(--danger);
+    align-self: center; font-size: 12px;
+  }
+
+  .ai-input-row {
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .ai-input {
+    flex: 1; padding: 8px 12px; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 13px; color: var(--text-primary); outline: none;
+    font-family: var(--font); resize: none; min-height: 36px; max-height: 100px;
+  }
+
+  .ai-input:focus { border-color: var(--accent); }
+  .ai-input::placeholder { color: var(--text-tertiary); }
+
+  .ai-btn {
+    padding: 8px 14px; font-size: 12px; font-weight: 600;
+    font-family: var(--font); background: var(--accent); color: white;
+    border: none; border-radius: var(--radius); cursor: pointer;
+    transition: background 0.15s; white-space: nowrap;
+  }
+
+  .ai-btn:hover { background: var(--accent-hover); }
+  .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ai-btn-secondary {
+    padding: 8px 14px; font-size: 12px; font-weight: 500;
+    font-family: var(--font); background: var(--bg-elevated); color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+
+  .ai-btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--text-tertiary); }
+  .ai-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ai-suggestions {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+  }
+
+  .ai-suggestion-chip {
+    font-size: 11px; padding: 3px 10px; border-radius: 12px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-secondary); cursor: pointer; transition: all 0.1s;
+    font-family: var(--font);
+  }
+
+  .ai-suggestion-chip:hover {
+    background: var(--accent-subtle); border-color: var(--accent); color: var(--accent);
+  }
+
+  .ai-loading {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-tertiary); padding: 4px 0;
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  .ai-loading .dots span {
+    display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent); animation: pulse 1.2s infinite;
+  }
+
+  .ai-loading .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .ai-loading .dots span:nth-child(3) { animation-delay: 0.4s; }
 
   /* ── Add task bar ── */
   .add-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 24px;
-    border-bottom: 1px solid var(--border-light);
-    background: var(--bg-base);
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 24px; border-bottom: 1px solid var(--border-light); background: var(--bg-base);
   }
 
   .add-bar input[type="text"] {
-    flex: 1;
-    padding: 6px 0;
-    background: transparent;
-    border: none;
-    font-size: 14px;
-    color: var(--text-primary);
-    outline: none;
-    font-family: var(--font);
+    flex: 1; padding: 6px 0; background: transparent; border: none;
+    font-size: 14px; color: var(--text-primary); outline: none; font-family: var(--font);
   }
 
   .add-bar input[type="text"]::placeholder { color: var(--text-tertiary); }
 
-  .add-bar-options {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-  }
+  .add-bar-options { display: flex; gap: 4px; align-items: center; }
 
   .add-option {
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 500;
-    font-family: var(--font);
-    color: var(--text-tertiary);
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.1s;
+    padding: 4px 8px; font-size: 11px; font-weight: 500; font-family: var(--font);
+    color: var(--text-tertiary); background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: all 0.1s;
   }
 
-  .add-option:hover {
-    border-color: var(--text-tertiary);
-    color: var(--text-secondary);
+  .add-option:hover { border-color: var(--text-tertiary); color: var(--text-secondary); }
+
+  .add-option select, .add-option input[type="date"] {
+    background: transparent; border: none; color: inherit; font: inherit; cursor: pointer; outline: none;
   }
 
-  .add-option select,
-  .add-option input[type="date"] {
-    background: transparent;
-    border: none;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    outline: none;
-  }
-
-  .add-option input[type="date"] {
-    width: 95px;
-  }
-
-  .add-option input[type="text"] {
-    background: transparent;
-    border: none;
-    color: inherit;
-    font: inherit;
-    outline: none;
-    width: 80px;
-  }
+  .add-option input[type="date"] { width: 95px; }
+  .add-option input[type="text"] { background: transparent; border: none; color: inherit; font: inherit; outline: none; width: 80px; }
 
   .btn-add-task {
-    padding: 5px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: var(--font);
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: background 0.15s;
+    padding: 5px 12px; font-size: 12px; font-weight: 600; font-family: var(--font);
+    background: var(--accent); color: white; border: none;
+    border-radius: var(--radius); cursor: pointer; transition: background 0.15s;
   }
 
   .btn-add-task:hover { background: var(--accent-hover); }
 
   /* ── Task list ── */
-  .task-list-container {
-    flex: 1;
-    overflow-y: auto;
-  }
+  .task-list-container { flex: 1; overflow-y: auto; }
 
   .task-group-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 24px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-light);
-    position: sticky;
-    top: 0;
-    z-index: 5;
+    display: flex; align-items: center; gap: 8px; padding: 8px 24px;
+    font-size: 12px; font-weight: 600; color: var(--text-secondary);
+    background: var(--bg-surface); border-bottom: 1px solid var(--border-light);
+    position: sticky; top: 0; z-index: 5;
   }
 
-  .task-group-header .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
-
-  .task-group-header .count {
-    color: var(--text-tertiary);
-    font-weight: 400;
-  }
+  .task-group-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .task-group-header .count { color: var(--text-tertiary); font-weight: 400; }
 
   .task-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 24px;
-    border-bottom: 1px solid var(--border-light);
-    transition: background 0.08s;
-    cursor: grab;
-    user-select: none;
+    display: flex; align-items: center; gap: 12px; padding: 8px 24px;
+    border-bottom: 1px solid var(--border-light); transition: background 0.08s;
+    cursor: grab; user-select: none;
   }
 
-  .task-item:hover {
-    background: var(--bg-hover);
-  }
+  .task-item:hover { background: var(--bg-hover); }
+  .task-item.dragging { opacity: 0.4; }
+  .task-item.drag-over { box-shadow: inset 0 -2px 0 var(--accent); }
 
-  .task-item.dragging {
-    opacity: 0.4;
-  }
-
-  .task-item.drag-over {
-    box-shadow: inset 0 -2px 0 var(--accent);
-  }
-
-  /* Status circle */
   .task-status {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1.5px solid var(--text-tertiary);
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    font-size: 10px;
-    color: transparent;
+    width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--text-tertiary);
+    cursor: pointer; flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; transition: all 0.15s; font-size: 10px; color: transparent;
   }
 
-  .task-status:hover {
-    border-color: var(--accent);
-    background: var(--accent-subtle);
-  }
+  .task-status:hover { border-color: var(--accent); background: var(--accent-subtle); }
+  .task-item.completed .task-status { border-color: var(--success); background: var(--success); color: white; }
 
-  .task-item.completed .task-status {
-    border-color: var(--success);
-    background: var(--success);
-    color: white;
-  }
-
-  /* Task content */
-  .task-content {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .task-content { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
 
   .task-title {
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 13px; font-weight: 400; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  .task-item.completed .task-title {
-    color: var(--text-tertiary);
-    text-decoration: line-through;
-  }
+  .task-item.completed .task-title { color: var(--text-tertiary); text-decoration: line-through; }
 
   .task-edit-input {
-    flex: 1;
-    padding: 2px 6px;
-    font-size: 13px;
-    font-family: var(--font);
-    background: var(--bg-elevated);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    color: var(--text-primary);
-    outline: none;
+    flex: 1; padding: 2px 6px; font-size: 13px; font-family: var(--font);
+    background: var(--bg-elevated); border: 1px solid var(--accent);
+    border-radius: 4px; color: var(--text-primary); outline: none;
   }
 
-  /* Tags */
-  .task-tags {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    flex-shrink: 0;
-  }
+  .task-tags { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
   .tag {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 1px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
+    font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; white-space: nowrap;
   }
 
-  .tag-priority-high {
-    background: var(--danger-subtle);
-    color: var(--danger);
-  }
+  .tag-priority-high { background: var(--danger-subtle); color: var(--danger); }
+  .tag-priority-medium { background: var(--orange-subtle); color: var(--orange); }
+  .tag-priority-low { background: var(--blue-subtle); color: var(--blue); }
+  .tag-category { background: var(--accent-subtle); color: var(--accent); }
+  .tag-due { font-size: 11px; color: var(--text-tertiary); font-weight: 400; }
+  .tag-due.overdue { color: var(--danger); font-weight: 500; }
 
-  .tag-priority-medium {
-    background: var(--orange-subtle);
-    color: var(--orange);
-  }
-
-  .tag-priority-low {
-    background: var(--blue-subtle);
-    color: var(--blue);
-  }
-
-  .tag-category {
-    background: var(--accent-subtle);
-    color: var(--accent);
-  }
-
-  .tag-due {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    font-weight: 400;
-  }
-
-  .tag-due.overdue {
-    color: var(--danger);
-    font-weight: 500;
-  }
-
-  /* Task actions */
-  .task-actions {
-    display: flex;
-    gap: 2px;
-    opacity: 0;
-    transition: opacity 0.1s;
-    flex-shrink: 0;
-  }
-
+  .task-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
   .task-item:hover .task-actions { opacity: 1; }
 
   .action-btn {
-    width: 26px;
-    height: 26px;
-    border-radius: 4px;
-    border: none;
-    background: transparent;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    transition: all 0.1s;
+    width: 26px; height: 26px; border-radius: 4px; border: none;
+    background: transparent; color: var(--text-tertiary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; transition: all 0.1s;
   }
 
-  .action-btn:hover {
-    background: var(--bg-active);
-    color: var(--text-primary);
-  }
+  .action-btn:hover { background: var(--bg-active); color: var(--text-primary); }
+  .action-btn.delete:hover { background: var(--danger-subtle); color: var(--danger); }
 
-  .action-btn.delete:hover {
-    background: var(--danger-subtle);
-    color: var(--danger);
-  }
-
-  /* ── Empty state ── */
   .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 20px;
-    color: var(--text-tertiary);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 80px 20px; color: var(--text-tertiary);
   }
 
-  .empty-state .icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-    opacity: 0.5;
-  }
+  .empty-state .icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 13px; }
 
-  .empty-state p {
-    font-size: 13px;
-  }
-
-  /* ── Sync status ── */
-  .sync-indicator {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--text-tertiary);
-    padding: 6px 8px;
-    border-radius: 6px;
-  }
-
-  .sync-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--text-tertiary);
-  }
-
+  /* ── Sync ── */
+  .sync-indicator { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-tertiary); padding: 6px 8px; border-radius: 6px; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-tertiary); }
   .sync-indicator.synced .sync-dot { background: var(--success); }
   .sync-indicator.syncing .sync-dot { background: var(--warning); }
   .sync-indicator.error .sync-dot { background: var(--danger); }
 
   /* ── Modal ── */
   .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6); z-index: 100; align-items: center;
+    justify-content: center; padding: 20px;
   }
 
   .modal-overlay.active { display: flex; }
 
   .modal {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 480px;
-    width: 100%;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.4);
-    max-height: 90vh;
-    overflow-y: auto;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; max-width: 480px; width: 100%;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto;
   }
 
-  .modal h2 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
+  .modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .modal .modal-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
+  .modal label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary); }
 
-  .modal .modal-desc {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 20px;
-    line-height: 1.5;
-  }
-
-  .modal label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: var(--text-secondary);
-  }
-
-  .modal input[type="text"],
-  .modal input[type="url"] {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 13px;
-    background: var(--bg-base);
-    color: var(--text-primary);
-    outline: none;
-    margin-bottom: 14px;
-    font-family: monospace;
+  .modal input[type="text"], .modal input[type="url"] {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 13px; background: var(--bg-base);
+    color: var(--text-primary); outline: none; margin-bottom: 14px; font-family: monospace;
   }
 
   .modal input:focus { border-color: var(--accent); }
 
   .modal .step {
-    background: var(--bg-base);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--text-secondary);
+    background: var(--bg-base); border: 1px solid var(--border-light);
+    border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px;
+    font-size: 12px; line-height: 1.6; color: var(--text-secondary);
   }
 
   .modal .step strong { color: var(--accent); }
 
   .modal .step code {
-    background: var(--bg-elevated);
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-size: 11px;
-    border: 1px solid var(--border);
+    background: var(--bg-elevated); padding: 1px 4px; border-radius: 3px;
+    font-size: 11px; border: 1px solid var(--border);
   }
 
-  .sync-id-display {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 14px;
-  }
-
+  .sync-id-display { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
   .sync-id-display input { flex: 1; margin-bottom: 0 !important; }
 
   .btn-copy {
-    padding: 8px 12px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: var(--font);
+    padding: 8px 12px; background: var(--accent); color: white; border: none;
+    border-radius: var(--radius); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: var(--font);
   }
 
   .btn-copy:hover { background: var(--accent-hover); }
 
-  .modal-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    margin-top: 16px;
-  }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
   .modal .btn-cancel {
-    padding: 7px 14px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-secondary);
-    font-size: 13px;
-    font-family: var(--font);
-    cursor: pointer;
+    padding: 7px 14px; background: transparent; border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text-secondary); font-size: 13px;
+    font-family: var(--font); cursor: pointer;
   }
 
   .modal .btn-cancel:hover { background: var(--bg-hover); }
 
   .modal .btn-save {
-    padding: 7px 14px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 13px;
-    font-weight: 600;
-    font-family: var(--font);
-    cursor: pointer;
+    padding: 7px 14px; background: var(--accent); color: white; border: none;
+    border-radius: var(--radius); font-size: 13px; font-weight: 600;
+    font-family: var(--font); cursor: pointer;
   }
 
   .modal .btn-save:hover { background: var(--accent-hover); }
 
-  /* ── Keyboard hint ── */
-  kbd {
-    font-size: 10px;
-    font-family: var(--font);
-    padding: 1px 5px;
-    border-radius: 3px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    color: var(--text-tertiary);
-    font-weight: 500;
-  }
-
-  /* ── Mobile ── */
   @media (max-width: 700px) {
     .sidebar { display: none; }
-    .toolbar { padding: 12px 16px; }
-    .add-bar { padding: 10px 16px; }
-    .task-item { padding: 8px 16px; }
-    .task-group-header { padding: 8px 16px; }
+    .toolbar, .add-bar, .task-item, .task-group-header, .ai-toggle, .ai-body { padding-left: 16px; padding-right: 16px; }
     .task-actions { opacity: 1; }
     .toolbar-search { max-width: none; }
   }
@@ -766,7 +493,6 @@
 </head>
 <body>
 <div class="layout">
-  <!-- Sidebar -->
   <nav class="sidebar">
     <div class="sidebar-brand">
       <div class="logo">T</div>
@@ -775,16 +501,13 @@
 
     <div class="sidebar-section">
       <button class="sidebar-item active" data-filter="all" onclick="setView('all')">
-        <span class="icon">&#9776;</span> All Tasks
-        <span class="count" id="countAll">0</span>
+        <span class="icon">&#9776;</span> All Tasks <span class="count" id="countAll">0</span>
       </button>
       <button class="sidebar-item" data-filter="active" onclick="setView('active')">
-        <span class="icon">&#9675;</span> Active
-        <span class="count" id="countActive">0</span>
+        <span class="icon">&#9675;</span> Active <span class="count" id="countActive">0</span>
       </button>
       <button class="sidebar-item" data-filter="completed" onclick="setView('completed')">
-        <span class="icon">&#10003;</span> Completed
-        <span class="count" id="countCompleted">0</span>
+        <span class="icon">&#10003;</span> Completed <span class="count" id="countCompleted">0</span>
       </button>
     </div>
 
@@ -811,7 +534,7 @@
         <span id="syncLabel">Offline</span>
       </div>
       <button class="sidebar-item" onclick="openSettings()">
-        <span class="icon">&#9881;</span> Sync Settings
+        <span class="icon">&#9881;</span> Settings
       </button>
       <button class="sidebar-item" id="themeToggle" onclick="toggleTheme()">
         <span class="icon">&#9790;</span> <span id="themeLabel">Light Mode</span>
@@ -819,14 +542,12 @@
     </div>
   </nav>
 
-  <!-- Main -->
   <div class="main">
-    <!-- Toolbar -->
     <div class="toolbar">
       <div class="toolbar-title" id="viewTitle">All Tasks</div>
       <div class="toolbar-search">
         <span class="search-icon">&#128269;</span>
-        <input type="text" id="searchInput" placeholder="Search... (Ctrl+K)">
+        <input type="text" id="searchInput" placeholder="Search...">
       </div>
       <div class="toolbar-filters">
         <div class="filter-btn">
@@ -845,7 +566,31 @@
       </div>
     </div>
 
-    <!-- Add task -->
+    <!-- AI Panel -->
+    <div class="ai-panel collapsed" id="aiPanel">
+      <div class="ai-toggle" onclick="toggleAI()">
+        <div class="ai-icon">AI</div>
+        <span>AI Assistant</span>
+        <span class="ai-shortcut"><kbd>Ctrl</kbd> + <kbd>I</kbd></span>
+      </div>
+      <div class="ai-body" id="aiBody">
+        <div class="ai-messages" id="aiMessages">
+          <div class="ai-msg assistant">Hi! I can help you create and organize tasks. Try typing naturally, like:<br><em>"Add buy groceries, call dentist tomorrow, and finish report by Friday - all high priority"</em></div>
+        </div>
+        <div class="ai-input-row">
+          <textarea class="ai-input" id="aiInput" rows="1" placeholder="Tell me what you need to do..."></textarea>
+          <button class="ai-btn" id="aiSendBtn" onclick="sendToAI()">Send</button>
+          <button class="ai-btn-secondary" onclick="organizeWithAI()">Organize</button>
+        </div>
+        <div class="ai-suggestions">
+          <button class="ai-suggestion-chip" onclick="usePrompt('Add tasks from my meeting notes')">From meeting notes</button>
+          <button class="ai-suggestion-chip" onclick="usePrompt('Organize my tasks by priority')">Organize tasks</button>
+          <button class="ai-suggestion-chip" onclick="usePrompt('What should I focus on today?')">What to focus on</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add task bar -->
     <div class="add-bar">
       <input type="text" id="taskInput" placeholder="Create a new task...">
       <div class="add-bar-options">
@@ -867,7 +612,6 @@
       </div>
     </div>
 
-    <!-- Task list -->
     <div class="task-list-container" id="taskList"></div>
   </div>
 </div>
@@ -875,13 +619,14 @@
 <!-- Settings Modal -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
-    <h2>Cloud Sync</h2>
-    <p class="modal-desc">Connect Firebase to sync tasks across devices. Free forever.</p>
+    <h2>Settings</h2>
+    <p class="modal-desc">Configure sync and AI.</p>
 
+    <div class="sidebar-section-title" style="padding:0;margin-bottom:12px;">CLOUD SYNC</div>
     <div class="step"><strong>1.</strong> Go to <b>console.firebase.google.com</b> and sign in.</div>
     <div class="step"><strong>2.</strong> Create a project (any name, skip Analytics).</div>
-    <div class="step"><strong>3.</strong> Sidebar &rarr; <b>Build &rarr; Realtime Database &rarr; Create Database</b> &rarr; Start in test mode.</div>
-    <div class="step"><strong>4.</strong> Copy the URL (e.g. <code>https://xxx-default-rtdb.firebaseio.com</code>) and paste below.</div>
+    <div class="step"><strong>3.</strong> Sidebar &rarr; <b>Build &rarr; Realtime Database &rarr; Create Database</b> &rarr; test mode.</div>
+    <div class="step"><strong>4.</strong> Copy the database URL and paste below.</div>
 
     <label for="dbUrlInput">Database URL</label>
     <input type="url" id="dbUrlInput" placeholder="https://your-project-default-rtdb.firebaseio.com">
@@ -895,9 +640,16 @@
     <label for="syncIdOverride">Join existing Sync ID</label>
     <input type="text" id="syncIdOverride" placeholder="Paste ID from another device">
 
+    <div style="border-top:1px solid var(--border);margin:20px 0 16px;"></div>
+    <div class="sidebar-section-title" style="padding:0;margin-bottom:12px;">AI ASSISTANT</div>
+    <div class="step"><strong>1.</strong> Go to <b>aistudio.google.com/apikey</b><br><strong>2.</strong> Click <b>"Create API Key"</b> &rarr; select any project &rarr; copy the key.</div>
+
+    <label for="geminiKeyInput">Gemini API Key</label>
+    <input type="text" id="geminiKeyInput" placeholder="AIza...">
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
-      <button class="btn-save" onclick="saveSettings()">Save & Sync</button>
+      <button class="btn-save" onclick="saveSettings()">Save</button>
     </div>
   </div>
 </div>
@@ -909,14 +661,15 @@
   let dragSrcIndex = null;
   let firebaseUrl = localStorage.getItem('firebaseUrl') || '';
   let syncId = localStorage.getItem('syncId') || generateSyncId();
+  let geminiKey = localStorage.getItem('geminiKey') || '';
   let syncTimer = null;
   let isSyncing = false;
-  let currentView = 'all';     // all | active | completed
-  let currentPriority = 'all'; // all | high | medium | low
+  let currentView = 'all';
+  let currentPriority = 'all';
+  let aiExpanded = false;
 
   const $ = id => document.getElementById(id);
 
-  // ── Sync ID ──
   function generateSyncId() {
     const c = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let id = '';
@@ -938,30 +691,247 @@
     applyTheme();
   }
 
+  // ── AI Panel ──
+  function toggleAI() {
+    aiExpanded = !aiExpanded;
+    $('aiPanel').className = 'ai-panel ' + (aiExpanded ? 'expanded' : 'collapsed');
+    if (aiExpanded) setTimeout(() => $('aiInput').focus(), 300);
+  }
+
+  function addAIMessage(text, role) {
+    const msgs = $('aiMessages');
+    const div = document.createElement('div');
+    div.className = 'ai-msg ' + role;
+    div.innerHTML = text;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showAILoading() {
+    const msgs = $('aiMessages');
+    const div = document.createElement('div');
+    div.className = 'ai-loading';
+    div.id = 'aiLoading';
+    div.innerHTML = 'Thinking <span class="dots"><span>.</span><span>.</span><span>.</span></span>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function hideAILoading() {
+    const el = $('aiLoading');
+    if (el) el.remove();
+  }
+
+  function usePrompt(text) {
+    $('aiInput').value = text;
+    sendToAI();
+  }
+
+  function getTodayStr() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  function getExistingCategories() {
+    return [...new Set(tasks.map(t => t.category).filter(Boolean))];
+  }
+
+  async function callGemini(prompt) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3 }
+      })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`API error: ${res.status}`);
+    }
+    const data = await res.json();
+    return data.candidates[0].content.parts[0].text;
+  }
+
+  async function sendToAI() {
+    const input = $('aiInput').value.trim();
+    if (!input) return;
+
+    if (!geminiKey) {
+      addAIMessage('Please add your Gemini API key in Settings first.', 'error');
+      return;
+    }
+
+    addAIMessage(input, 'user');
+    $('aiInput').value = '';
+    $('aiSendBtn').disabled = true;
+    showAILoading();
+
+    const existingTasks = tasks.slice(0, 30).map(t =>
+      `- "${t.text}" [${t.priority}]${t.category ? ' #' + t.category : ''}${t.completed ? ' (done)' : ''}`
+    ).join('\n');
+
+    const categories = getExistingCategories();
+
+    const systemPrompt = `You are a task management AI assistant. Today's date is ${getTodayStr()}.
+The user's existing categories are: ${categories.length ? categories.join(', ') : 'none yet'}.
+Their current tasks:
+${existingTasks || '(no tasks yet)'}
+
+Based on the user's message, respond with a JSON object. Choose ONE action:
+
+1. If they want to CREATE tasks, respond:
+{"action":"create","tasks":[{"text":"task name","priority":"low|medium|high","category":"label","dueDate":"YYYY-MM-DD or null"}],"message":"brief confirmation"}
+
+2. If they want to ORGANIZE/reprioritize existing tasks, respond:
+{"action":"organize","updates":[{"text":"exact existing task text","priority":"new priority","category":"new category"}],"message":"brief explanation of changes"}
+
+3. If they're asking a QUESTION about their tasks or want advice, respond:
+{"action":"chat","message":"your helpful response"}
+
+Rules:
+- For dates: "tomorrow" = next day, "Friday" = next upcoming Friday, "next week" = next Monday, etc.
+- Priority: use "high" for urgent/important, "medium" for normal, "low" for minor/optional.
+- Categories: reuse existing categories when they fit. Create new ones only when needed. Keep them short (1-2 words).
+- When creating multiple tasks, parse them intelligently from natural language.
+- ALWAYS respond with valid JSON only, no markdown fences.`;
+
+    try {
+      const raw = await callGemini(systemPrompt + '\n\nUser: ' + input);
+      hideAILoading();
+
+      // Clean potential markdown fences
+      const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const result = JSON.parse(cleaned);
+
+      if (result.action === 'create' && result.tasks) {
+        let count = 0;
+        for (const t of result.tasks) {
+          tasks.unshift({
+            id: Date.now() + count,
+            text: t.text,
+            completed: false,
+            priority: t.priority || 'medium',
+            category: t.category || '',
+            dueDate: t.dueDate || null,
+            createdAt: new Date().toISOString()
+          });
+          count++;
+        }
+        save(); render();
+        addAIMessage(`${result.message || `Created ${count} task${count > 1 ? 's' : ''}.`}`, 'system');
+      } else if (result.action === 'organize' && result.updates) {
+        let updated = 0;
+        for (const u of result.updates) {
+          const task = tasks.find(t => t.text === u.text);
+          if (task) {
+            if (u.priority) task.priority = u.priority;
+            if (u.category) task.category = u.category;
+            updated++;
+          }
+        }
+        save(); render();
+        addAIMessage(result.message || `Updated ${updated} task${updated > 1 ? 's' : ''}.`, 'system');
+      } else if (result.action === 'chat') {
+        addAIMessage(result.message, 'assistant');
+      }
+    } catch (e) {
+      hideAILoading();
+      console.error('AI error:', e);
+      addAIMessage('Sorry, something went wrong. Check your API key in Settings.', 'error');
+    }
+
+    $('aiSendBtn').disabled = false;
+  }
+
+  async function organizeWithAI() {
+    if (!geminiKey) {
+      addAIMessage('Please add your Gemini API key in Settings first.', 'error');
+      return;
+    }
+    if (tasks.filter(t => !t.completed).length === 0) {
+      addAIMessage('No active tasks to organize.', 'error');
+      return;
+    }
+
+    $('aiInput').value = '';
+    addAIMessage('Organize my tasks - suggest better priorities and categories', 'user');
+    $('aiSendBtn').disabled = true;
+    showAILoading();
+
+    const activeTasks = tasks.filter(t => !t.completed).map(t =>
+      `- "${t.text}" [priority: ${t.priority}]${t.category ? ' [category: ' + t.category + ']' : ''}${t.dueDate ? ' [due: ' + t.dueDate + ']' : ''}`
+    ).join('\n');
+
+    const prompt = `You are a task management AI. Today is ${getTodayStr()}.
+
+Here are the user's active tasks:
+${activeTasks}
+
+Analyze these tasks and suggest better organization. Return JSON:
+{"action":"organize","updates":[{"text":"exact task text","priority":"low|medium|high","category":"suggested category"}],"message":"Brief explanation of your reasoning"}
+
+Rules:
+- Overdue or time-sensitive items should be high priority
+- Group related tasks under the same category
+- Keep categories short (1-2 words): Work, Personal, Health, Finance, Shopping, Home, etc.
+- Only include tasks that need changes
+- ALWAYS respond with valid JSON only, no markdown fences.`;
+
+    try {
+      const raw = await callGemini(prompt);
+      hideAILoading();
+      const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const result = JSON.parse(cleaned);
+
+      if (result.updates) {
+        let updated = 0;
+        for (const u of result.updates) {
+          const task = tasks.find(t => t.text === u.text);
+          if (task) {
+            if (u.priority) task.priority = u.priority;
+            if (u.category) task.category = u.category;
+            updated++;
+          }
+        }
+        save(); render();
+        addAIMessage(result.message || `Organized ${updated} tasks.`, 'assistant');
+      }
+    } catch (e) {
+      hideAILoading();
+      addAIMessage('Sorry, something went wrong.', 'error');
+    }
+
+    $('aiSendBtn').disabled = false;
+  }
+
+  // AI input auto-resize + Enter to send
+  $('aiInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+
+  $('aiInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); }
+  });
+
   // ── Sidebar nav ──
   function setView(view) {
-    currentView = view;
-    currentPriority = 'all';
+    currentView = view; currentPriority = 'all';
     $('filterPriority').value = 'all';
-    updateSidebarActive();
-    render();
+    updateSidebarActive(); render();
   }
 
   function setPriority(p) {
-    currentView = 'all';
-    currentPriority = p;
+    currentView = 'all'; currentPriority = p;
     $('filterPriority').value = p;
-    updateSidebarActive();
-    render();
+    updateSidebarActive(); render();
   }
 
   function setCategoryView(cat) {
-    currentView = 'all';
-    currentPriority = 'all';
-    $('filterPriority').value = 'all';
-    $('filterCategory').value = cat;
-    updateSidebarActive();
-    render();
+    currentView = 'all'; currentPriority = 'all';
+    $('filterPriority').value = 'all'; $('filterCategory').value = cat;
+    updateSidebarActive(); render();
   }
 
   function updateSidebarActive() {
@@ -970,7 +940,6 @@
     if (viewBtn && currentPriority === 'all') viewBtn.classList.add('active');
     const prioBtn = document.querySelector(`.sidebar-item[data-priority="${currentPriority}"]`);
     if (prioBtn && currentPriority !== 'all') prioBtn.classList.add('active');
-
     const titles = { all: 'All Tasks', active: 'Active', completed: 'Completed' };
     const prioTitles = { high: 'Urgent', medium: 'Medium Priority', low: 'Low Priority' };
     $('viewTitle').textContent = currentPriority !== 'all' ? prioTitles[currentPriority] : titles[currentView];
@@ -981,6 +950,7 @@
     $('dbUrlInput').value = firebaseUrl;
     $('syncIdInput').value = syncId;
     $('syncIdOverride').value = '';
+    $('geminiKeyInput').value = geminiKey;
     $('settingsModal').classList.add('active');
   }
 
@@ -1002,6 +972,8 @@
     if (overrideId) { syncId = overrideId; localStorage.setItem('syncId', syncId); }
     firebaseUrl = url;
     localStorage.setItem('firebaseUrl', firebaseUrl);
+    geminiKey = $('geminiKeyInput').value.trim();
+    localStorage.setItem('geminiKey', geminiKey);
     closeSettings();
     updateSyncUI();
     if (firebaseUrl) { pullFromCloud().then(() => { pushToCloud(); startSyncInterval(); }); }
@@ -1010,19 +982,17 @@
   // ── Cloud Sync ──
   function getDbPath() { return `${firebaseUrl}/tasks/${syncId}.json`; }
 
-  function setSyncStatus(status, label) {
-    const el = $('syncIndicator');
-    el.className = 'sync-indicator ' + status;
-    $('syncLabel').textContent = label || status;
+  function setSyncStatus(s, l) {
+    $('syncIndicator').className = 'sync-indicator ' + s;
+    $('syncLabel').textContent = l || s;
   }
 
   async function pushToCloud() {
     if (!firebaseUrl || isSyncing) return;
-    isSyncing = true;
-    setSyncStatus('syncing', 'Syncing...');
+    isSyncing = true; setSyncStatus('syncing', 'Syncing...');
     try {
-      const res = await fetch(getDbPath(), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tasks) });
-      if (!res.ok) throw new Error();
+      const r = await fetch(getDbPath(), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tasks) });
+      if (!r.ok) throw 0;
       setSyncStatus('synced', 'Synced');
     } catch { setSyncStatus('error', 'Sync error'); }
     isSyncing = false;
@@ -1030,16 +1000,14 @@
 
   async function pullFromCloud() {
     if (!firebaseUrl || isSyncing) return;
-    isSyncing = true;
-    setSyncStatus('syncing', 'Syncing...');
+    isSyncing = true; setSyncStatus('syncing', 'Syncing...');
     try {
-      const res = await fetch(getDbPath());
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (data && Array.isArray(data)) {
-        const cloudIds = new Set(data.map(t => t.id));
-        const localOnly = tasks.filter(t => !cloudIds.has(t.id));
-        tasks = [...data, ...localOnly];
+      const r = await fetch(getDbPath());
+      if (!r.ok) throw 0;
+      const d = await r.json();
+      if (d && Array.isArray(d)) {
+        const ids = new Set(d.map(t => t.id));
+        tasks = [...d, ...tasks.filter(t => !ids.has(t.id))];
         localStorage.setItem('tasks', JSON.stringify(tasks));
         render();
       }
@@ -1055,15 +1023,11 @@
   }
 
   function updateSyncUI() {
-    if (firebaseUrl) { setSyncStatus('synced', 'Synced'); }
-    else { setSyncStatus('offline', 'Offline'); }
+    if (firebaseUrl) setSyncStatus('synced', 'Synced');
+    else setSyncStatus('offline', 'Offline');
   }
 
-  // ── Save ──
-  function save() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-    pushToCloud();
-  }
+  function save() { localStorage.setItem('tasks', JSON.stringify(tasks)); pushToCloud(); }
 
   // ── Tasks CRUD ──
   function addTask() {
@@ -1076,35 +1040,23 @@
       dueDate: $('dueDateInput').value || null,
       createdAt: new Date().toISOString()
     });
-    $('taskInput').value = '';
-    $('categoryInput').value = '';
-    $('dueDateInput').value = '';
+    $('taskInput').value = ''; $('categoryInput').value = ''; $('dueDateInput').value = '';
     save(); render(); $('taskInput').focus();
   }
 
   $('addBtn').addEventListener('click', addTask);
   $('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 
-  function toggleTask(id) {
-    const t = tasks.find(t => t.id === id);
-    if (t) t.completed = !t.completed;
-    save(); render();
-  }
-
-  function deleteTask(id) {
-    tasks = tasks.filter(t => t.id !== id);
-    save(); render();
-  }
+  function toggleTask(id) { const t = tasks.find(t => t.id === id); if (t) t.completed = !t.completed; save(); render(); }
+  function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); render(); }
 
   function startEdit(id) {
     const el = document.querySelector(`[data-id="${id}"] .task-title`);
     const t = tasks.find(t => t.id === id);
     if (!el || !t) return;
     const input = document.createElement('input');
-    input.className = 'task-edit-input';
-    input.value = t.text;
-    el.replaceWith(input);
-    input.focus(); input.select();
+    input.className = 'task-edit-input'; input.value = t.text;
+    el.replaceWith(input); input.focus(); input.select();
     const finish = () => { const v = input.value.trim(); if (v) t.text = v; save(); render(); };
     input.addEventListener('blur', finish);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') finish(); if (e.key === 'Escape') render(); });
@@ -1113,17 +1065,13 @@
   // ── Filters ──
   [$('searchInput'), $('filterPriority'), $('filterCategory')].forEach(el => {
     el.addEventListener('input', render);
-    el.addEventListener('change', () => {
-      if (el === $('filterPriority')) currentPriority = el.value;
-      render();
-    });
+    el.addEventListener('change', () => { if (el === $('filterPriority')) currentPriority = el.value; render(); });
   });
 
   function getFiltered() {
     const search = $('searchInput').value.toLowerCase();
     const priority = $('filterPriority').value;
     const category = $('filterCategory').value;
-
     return tasks.filter(t => {
       if (search && !t.text.toLowerCase().includes(search) && !(t.category || '').toLowerCase().includes(search)) return false;
       if (currentView === 'active' && t.completed) return false;
@@ -1134,10 +1082,10 @@
     });
   }
 
-  function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const d = new Date(dateStr + 'T00:00:00');
-    const today = new Date(); today.setHours(0,0,0,0);
+  function formatDate(ds) {
+    if (!ds) return '';
+    const d = new Date(ds + 'T00:00:00'), today = new Date();
+    today.setHours(0,0,0,0);
     const diff = Math.floor((d - today) / 86400000);
     if (diff < 0) return 'Overdue';
     if (diff === 0) return 'Today';
@@ -1147,26 +1095,19 @@
 
   function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  // ── Render ──
   function render() {
-    // Update category filters
     const cats = [...new Set(tasks.map(t => t.category).filter(Boolean))].sort();
     const curCat = $('filterCategory').value;
     $('filterCategory').innerHTML = '<option value="all">All Categories</option>';
     cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; $('filterCategory').appendChild(o); });
     $('filterCategory').value = curCat;
-
     $('categoryList').innerHTML = '';
     cats.forEach(c => { const o = document.createElement('option'); o.value = c; $('categoryList').appendChild(o); });
 
-    // Sidebar categories
     const catSection = $('categorySidebar');
     catSection.innerHTML = cats.length ? '<div class="sidebar-section-title">Labels</div>' : '';
-    cats.forEach(c => {
-      catSection.innerHTML += `<button class="sidebar-item" onclick="setCategoryView('${escapeHtml(c)}')"><span class="icon">&#9632;</span> ${escapeHtml(c)}</button>`;
-    });
+    cats.forEach(c => { catSection.innerHTML += `<button class="sidebar-item" onclick="setCategoryView('${escapeHtml(c)}')"><span class="icon">&#9632;</span> ${escapeHtml(c)}</button>`; });
 
-    // Sidebar counts
     const active = tasks.filter(t => !t.completed).length;
     const completed = tasks.filter(t => t.completed).length;
     $('countAll').textContent = tasks.length;
@@ -1177,29 +1118,24 @@
     const list = $('taskList');
 
     if (filtered.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="icon">&#9744;</div><p>${tasks.length === 0 ? 'No tasks yet. Create one above.' : 'No matching tasks.'}</p></div>`;
+      list.innerHTML = `<div class="empty-state"><div class="icon">&#9744;</div><p>${tasks.length === 0 ? 'No tasks yet. Create one above or ask AI.' : 'No matching tasks.'}</p></div>`;
       return;
     }
 
-    // Group: active first, then completed
     const activeTasks = filtered.filter(t => !t.completed);
     const completedTasks = filtered.filter(t => t.completed);
-
     let html = '';
 
-    if (activeTasks.length && completedTasks.length) {
+    if (activeTasks.length && completedTasks.length)
       html += `<div class="task-group-header"><span class="dot" style="background:var(--accent)"></span>Active <span class="count">${activeTasks.length}</span></div>`;
-    }
     html += activeTasks.map(renderTask).join('');
 
-    if (completedTasks.length && activeTasks.length) {
+    if (completedTasks.length && activeTasks.length)
       html += `<div class="task-group-header"><span class="dot" style="background:var(--success)"></span>Completed <span class="count">${completedTasks.length}</span></div>`;
-    }
     html += completedTasks.map(renderTask).join('');
 
     list.innerHTML = html;
 
-    // Drag events
     list.querySelectorAll('.task-item').forEach(el => {
       el.addEventListener('dragstart', handleDragStart);
       el.addEventListener('dragover', handleDragOver);
@@ -1215,9 +1151,7 @@
     return `
       <div class="task-item ${t.completed ? 'completed' : ''}" data-id="${t.id}" draggable="true">
         <div class="task-status" onclick="toggleTask(${t.id})">${t.completed ? '&#10003;' : ''}</div>
-        <div class="task-content">
-          <span class="task-title">${escapeHtml(t.text)}</span>
-        </div>
+        <div class="task-content"><span class="task-title">${escapeHtml(t.text)}</span></div>
         <div class="task-tags">
           ${t.category ? `<span class="tag tag-category">${escapeHtml(t.category)}</span>` : ''}
           <span class="tag tag-priority-${t.priority}">${t.priority === 'high' ? 'Urgent' : t.priority === 'medium' ? 'Medium' : 'Low'}</span>
@@ -1233,45 +1167,32 @@
   // ── Drag & Drop ──
   function handleDragStart(e) {
     dragSrcIndex = tasks.findIndex(t => t.id === +this.dataset.id);
-    this.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
+    this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move';
   }
-
-  function handleDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    this.classList.add('drag-over');
-  }
-
+  function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.classList.add('drag-over'); }
   function handleDrop(e) {
-    e.preventDefault();
-    this.classList.remove('drag-over');
-    const dropIndex = tasks.findIndex(t => t.id === +this.dataset.id);
-    if (dragSrcIndex !== null && dragSrcIndex !== dropIndex) {
-      const [moved] = tasks.splice(dragSrcIndex, 1);
-      tasks.splice(dropIndex, 0, moved);
-      save(); render();
+    e.preventDefault(); this.classList.remove('drag-over');
+    const di = tasks.findIndex(t => t.id === +this.dataset.id);
+    if (dragSrcIndex !== null && dragSrcIndex !== di) {
+      const [m] = tasks.splice(dragSrcIndex, 1); tasks.splice(di, 0, m); save(); render();
     }
   }
-
   function handleDragEnd() {
     this.classList.remove('dragging');
     document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
     dragSrcIndex = null;
   }
 
-  // ── Keyboard ──
+  // ── Keyboard shortcuts ──
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); $('searchInput').focus(); $('searchInput').select(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); toggleAI(); }
   });
 
-  // ── Modal close on overlay ──
   $('settingsModal').addEventListener('click', e => { if (e.target === $('settingsModal')) closeSettings(); });
 
   // ── Init ──
-  updateSyncUI();
-  updateSidebarActive();
-  render();
+  updateSyncUI(); updateSidebarActive(); render();
   if (firebaseUrl) { pullFromCloud(); startSyncInterval(); }
 </script>
 </body>
