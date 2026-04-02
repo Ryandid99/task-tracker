@@ -271,11 +271,118 @@
   .modal .btn-save { padding: 7px 14px; background: var(--accent); color: white; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; }
   .section-divider { border-top: 1px solid var(--border); margin: 16px 0 12px; }
 
+  /* ── Mobile bottom nav ── */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg-surface); border-top: 1px solid var(--border);
+    padding: 6px 0; padding-bottom: max(6px, env(safe-area-inset-bottom));
+    z-index: 50;
+  }
+
+  .mobile-nav-inner {
+    display: flex; justify-content: space-around; align-items: center;
+  }
+
+  .mobile-nav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: none; border: none; color: var(--text-tertiary);
+    font-size: 10px; font-family: var(--font); font-weight: 500;
+    cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: all 0.1s;
+    min-width: 52px;
+  }
+
+  .mobile-nav-btn .m-icon { font-size: 18px; line-height: 1; }
+  .mobile-nav-btn.active { color: var(--accent); }
+  .mobile-nav-btn:hover { color: var(--text-primary); }
+
+  /* ── Mobile hamburger ── */
+  .mobile-header {
+    display: none;
+    align-items: center; gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg-surface); border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-header .logo { width: 24px; height: 24px; background: linear-gradient(135deg, var(--accent), #c084fc); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 11px; }
+  .mobile-header span { font-weight: 700; font-size: 15px; flex: 1; }
+  .mobile-header-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+  /* ── Mobile sidebar overlay ── */
+  .sidebar-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 60;
+  }
+
+  .sidebar-overlay.active { display: block; }
+
   @media (max-width: 700px) {
-    .sidebar { display: none; }
-    .toolbar, .add-bar, .task-item, .task-group-header, .ai-toggle, .ai-body, .page-header, .page-body { padding-left: 16px; padding-right: 16px; }
+    .sidebar {
+      display: none;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 70;
+      width: 260px; box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+    }
+
+    .sidebar.mobile-open { display: flex; }
+    .mobile-nav { display: block; }
+    .mobile-header { display: flex; }
+
+    .main { padding-bottom: 64px; }
+
+    .toolbar, .add-bar, .task-item, .task-group-header, .ai-toggle, .ai-body { padding-left: 16px; padding-right: 16px; }
+    .page-header { padding: 16px 16px 0; }
+    .page-body { padding: 12px 16px 16px; }
+
     .task-actions { opacity: 1; }
     .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+
+    /* Notes: stack vertically on mobile */
+    #page-notes .page-body { flex-direction: column !important; }
+    #page-notes .page-body > div:first-child { width: 100% !important; }
+    .note-list { display: flex; flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 8px; flex-wrap: nowrap; }
+    .note-item { min-width: 160px; flex-shrink: 0; }
+    .note-editor { min-height: 200px; }
+
+    /* Notes header responsive */
+    #page-notes .page-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px; padding-right: 16px !important; }
+
+    /* Planner responsive */
+    .planner-note { min-height: 60px; }
+
+    /* Toolbar responsive */
+    .toolbar { flex-wrap: wrap; gap: 6px; }
+    .toolbar-search { max-width: none; flex: 1 1 100%; order: 10; }
+    .toolbar-filters { flex-wrap: wrap; flex: 1 1 100%; order: 11; }
+
+    /* Add bar responsive */
+    .add-bar { flex-wrap: wrap; }
+    .add-options { flex-wrap: wrap; width: 100%; margin-top: 4px; }
+
+    /* Bookmark form responsive */
+    .bookmark-form { flex-direction: column; }
+    .bookmark-form input { width: 100% !important; }
+
+    /* Project form responsive */
+    .project-form { flex-direction: column; }
+    .project-form input { width: 100%; }
+
+    /* Modal responsive */
+    .modal { padding: 20px; max-height: 85vh; }
+
+    /* Dashboard quick actions horizontal on mobile */
+    .card { padding: 14px; }
+    .card-value { font-size: 22px; }
+
+    /* AI panel */
+    .ai-panel.expanded { max-height: 400px; }
+    .ai-chips { gap: 4px; }
+  }
+
+  @media (max-width: 400px) {
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .add-options .add-opt { font-size: 10px; padding: 3px 6px; }
+    .task-tags { gap: 4px; }
+    .tag { font-size: 10px; padding: 1px 4px; }
   }
 </style>
 </head>
@@ -303,7 +410,18 @@
     </div>
   </nav>
 
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
   <div class="main">
+    <!-- Mobile header -->
+    <div class="mobile-header">
+      <div class="logo">W</div>
+      <span>WorkHub</span>
+      <button class="mobile-header-btn" onclick="toggleTheme()" title="Theme">&#9790;</button>
+      <button class="mobile-header-btn" onclick="openSettings()" title="Settings">&#9881;</button>
+      <button class="mobile-header-btn" onclick="openMobileSidebar()" title="Menu">&#9776;</button>
+    </div>
+
     <!-- ════ DASHBOARD ════ -->
     <div class="page active" id="page-dashboard">
       <div class="page-header"><h2>Dashboard</h2><p>Your work at a glance</p></div>
@@ -445,6 +563,17 @@
     </div>
   </div>
 </div>
+
+<!-- Mobile bottom nav -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mobile-nav-btn active" data-page="dashboard" onclick="mobileNav('dashboard')"><span class="m-icon">&#9632;</span>Home</button>
+    <button class="mobile-nav-btn" data-page="planner" onclick="mobileNav('planner')"><span class="m-icon">&#9788;</span>Planner</button>
+    <button class="mobile-nav-btn" data-page="tasks" onclick="mobileNav('tasks')"><span class="m-icon">&#9744;</span>Tasks</button>
+    <button class="mobile-nav-btn" data-page="notes" onclick="mobileNav('notes')"><span class="m-icon">&#9998;</span>Notes</button>
+    <button class="mobile-nav-btn" data-page="bookmarks" onclick="mobileNav('bookmarks')"><span class="m-icon">&#9734;</span>Links</button>
+  </div>
+</nav>
 
 <!-- Settings Modal -->
 <div class="modal-overlay" id="settingsModal">
@@ -1066,6 +1195,32 @@ function renderBookmarks() {
     </div>`;
   }).join('') : '<div class="empty-state"><p>No bookmarks yet. Add one above.</p></div>';
 }
+
+// ══════════════════════════════════════════
+// MOBILE NAV
+// ══════════════════════════════════════════
+function mobileNav(page) {
+  showPage(page);
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.mobile-nav-btn[data-page="${page}"]`)?.classList.add('active');
+}
+
+function openMobileSidebar() {
+  document.querySelector('.sidebar').classList.add('mobile-open');
+  $('sidebarOverlay').classList.add('active');
+}
+
+function closeMobileSidebar() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  $('sidebarOverlay').classList.remove('active');
+}
+
+// Close sidebar when a nav item inside it is clicked (mobile)
+document.querySelector('.sidebar').addEventListener('click', e => {
+  if (e.target.closest('.nav-item') && window.innerWidth <= 700) {
+    closeMobileSidebar();
+  }
+});
 
 // ══════════════════════════════════════════
 // KEYBOARD SHORTCUTS
