@@ -917,44 +917,121 @@ function stopRecording() {
   $('recLabel').textContent = 'Record Meeting';
 }
 
+let pendingAudioBase64 = null;
+
 async function processRecording() {
   const note = D.notes.find(n => n.id === activeNoteId);
   if (!note) return;
 
-  // Use Web Speech API for transcription if available, else just save audio
-  note.content += '\n\n[Processing recording...]\n';
+  note.content += '\n\n[Detecting languages...]\n';
   renderNotes();
 
   if (!geminiKey) {
-    note.content = note.content.replace('[Processing recording...]', '[Recording saved - add Gemini API key for AI summarization]');
+    note.content = note.content.replace('[Detecting languages...]', '[Add Gemini API key in Settings for AI transcription]');
     saveLocal(); renderNotes(); return;
   }
 
-  // Convert to base64 for Gemini
   const blob = new Blob(audioChunks, { type: 'audio/webm' });
   const reader = new FileReader();
   reader.onloadend = async () => {
-    const base64 = reader.result.split(',')[1];
+    pendingAudioBase64 = reader.result.split(',')[1];
     try {
+      // Step 1: Detect languages
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [
-            { inlineData: { mimeType: 'audio/webm', data: base64 } },
-            { text: 'Transcribe this meeting recording and create professional meeting minutes with: 1) Summary, 2) Key Discussion Points, 3) Action Items, 4) Decisions Made. Format it cleanly.' }
+            { inlineData: { mimeType: 'audio/webm', data: pendingAudioBase64 } },
+            { text: 'Listen to this audio and detect which languages are spoken. Return JSON only (no fences): {"languages":["English","Korean",...],"recommendation":"the language you recommend","reason":"brief reason why this language is best for the minutes"}. Consider which language was dominant, which language the key decisions were in, and which would be most useful for the meeting participants.' }
           ]}]
         })
       });
       const data = await r.json();
-      const text = data.candidates[0].content.parts[0].text;
-      note.content = note.content.replace('[Processing recording...]', text);
-      note.title = 'Meeting Minutes - ' + new Date().toLocaleDateString();
+      const raw = data.candidates[0].content.parts[0].text;
+      const result = JSON.parse(raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
+
+      note.content = note.content.replace('[Detecting languages...]', '[Waiting for language selection...]');
+      saveLocal(); renderNotes();
+
+      // Show language picker modal
+      showLangPicker(result.languages, result.recommendation, result.reason);
     } catch (e) {
-      note.content = note.content.replace('[Processing recording...]', '[Error processing recording. Try again.]');
+      note.content = note.content.replace('[Detecting languages...]', '[Error detecting languages. Try again.]');
+      saveLocal(); renderNotes();
     }
-    saveLocal(); renderNotes();
   };
   reader.readAsDataURL(blob);
+}
+
+function showLangPicker(languages, recommendation, reason) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px;">
+      <h2>Choose Output Language</h2>
+      <p class="modal-desc">AI detected these languages in your recording:</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+        ${languages.map(l => `<span class="tag tag-category" style="font-size:13px;padding:4px 10px;">${escHtml(l)}</span>`).join('')}
+      </div>
+      <div style="background:var(--accent-subtle);border:1px solid var(--accent);border-radius:var(--radius);padding:10px 12px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:2px;">AI Recommendation: ${escHtml(recommendation)}</div>
+        <div style="font-size:12px;color:var(--text-secondary);">${escHtml(reason)}</div>
+      </div>
+      <label>Select language for meeting minutes:</label>
+      <select id="langSelect" style="width:100%;padding:8px 10px;background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;margin-bottom:6px;outline:none;">
+        ${languages.map(l => `<option value="${escHtml(l)}" ${l===recommendation?'selected':''}>${escHtml(l)} ${l===recommendation?'(Recommended)':''}</option>`).join('')}
+        <option value="Bilingual">Bilingual (both languages)</option>
+      </select>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="langCancelBtn">Cancel</button>
+        <button class="btn-save" id="langConfirmBtn">Generate Minutes</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  document.getElementById('langConfirmBtn').onclick = () => {
+    const lang = document.getElementById('langSelect').value;
+    overlay.remove();
+    generateMinutes(lang);
+  };
+  document.getElementById('langCancelBtn').onclick = () => {
+    overlay.remove();
+    const note = D.notes.find(n => n.id === activeNoteId);
+    if (note) { note.content = note.content.replace('[Waiting for language selection...]', '[Cancelled]'); saveLocal(); renderNotes(); }
+    pendingAudioBase64 = null;
+  };
+}
+
+async function generateMinutes(language) {
+  const note = D.notes.find(n => n.id === activeNoteId);
+  if (!note || !pendingAudioBase64) return;
+
+  note.content = note.content.replace('[Waiting for language selection...]', '[Generating meeting minutes...]\n');
+  renderNotes();
+
+  const langInstruction = language === 'Bilingual'
+    ? 'Write the meeting minutes in both languages used in the recording, with each section having both language versions.'
+    : `Write the entire meeting minutes in ${language}.`;
+
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [
+          { inlineData: { mimeType: 'audio/webm', data: pendingAudioBase64 } },
+          { text: `Transcribe this meeting recording and create professional meeting minutes. ${langInstruction}\n\nFormat:\n1) Summary\n2) Key Discussion Points\n3) Action Items\n4) Decisions Made\n\nBe thorough and accurate. Preserve important details, names, and specific commitments.` }
+        ]}]
+      })
+    });
+    const data = await r.json();
+    const text = data.candidates[0].content.parts[0].text;
+    note.content = note.content.replace('[Generating meeting minutes...]\n', text);
+    note.title = 'Meeting Minutes - ' + new Date().toLocaleDateString();
+  } catch (e) {
+    note.content = note.content.replace('[Generating meeting minutes...]\n', '[Error generating minutes. Try again.]');
+  }
+  pendingAudioBase64 = null;
+  saveLocal(); renderNotes();
 }
 
 // ══════════════════════════════════════════
