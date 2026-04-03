@@ -609,9 +609,21 @@
     <input type="text" id="syncIdOverride" placeholder="Paste from another device">
     <div class="section-divider"></div>
     <div class="sidebar-section-title" style="padding:0;margin-bottom:10px;">AI ASSISTANT</div>
-    <div class="step"><strong>1.</strong> Go to <b>aistudio.google.com/apikey</b> &rarr; <b>Create API Key</b></div>
-    <label>Gemini API Key</label>
-    <input type="text" id="geminiKeyInput" placeholder="AIza...">
+    <label>AI Provider</label>
+    <select id="aiProviderSelect" style="width:100%;padding:8px 10px;background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;margin-bottom:12px;outline:none;font-family:var(--font);">
+      <option value="groq">Groq (Recommended - generous free tier)</option>
+      <option value="gemini">Google Gemini</option>
+    </select>
+    <div id="groqSetup">
+      <div class="step"><strong>1.</strong> Go to <b>console.groq.com/keys</b> &rarr; sign up free &rarr; <b>Create API Key</b></div>
+      <label>Groq API Key</label>
+      <input type="text" id="groqKeyInput" placeholder="gsk_...">
+    </div>
+    <div id="geminiSetup" style="display:none;">
+      <div class="step"><strong>1.</strong> Go to <b>aistudio.google.com/apikey</b> &rarr; <b>Create API Key</b></div>
+      <label>Gemini API Key</label>
+      <input type="text" id="geminiKeyInput" placeholder="AIza...">
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
       <button class="btn-save" onclick="saveSettings()">Save</button>
@@ -631,6 +643,8 @@ let theme = localStorage.getItem('theme') || 'dark';
 let firebaseUrl = localStorage.getItem('firebaseUrl') || '';
 let syncId = localStorage.getItem('syncId') || genId(16);
 let geminiKey = localStorage.getItem('geminiKey') || '';
+let groqKey = localStorage.getItem('groqKey') || '';
+let aiProvider = localStorage.getItem('aiProvider') || 'groq';
 let syncTimer = null, isSyncing = false, aiExpanded = false;
 let currentPage = 'dashboard', activeNoteId = null, isRecording = false, mediaRec = null, audioChunks = [];
 let dragSrcIdx = null;
@@ -700,7 +714,17 @@ function updateSyncUI() { if(firebaseUrl) setSyncStatus('synced','Synced'); else
 // ══════════════════════════════════════════
 // SETTINGS
 // ══════════════════════════════════════════
-function openSettings() { $('dbUrlInput').value=firebaseUrl; $('syncIdInput').value=syncId; $('syncIdOverride').value=''; $('geminiKeyInput').value=geminiKey; $('settingsModal').classList.add('active'); }
+function openSettings() {
+  $('dbUrlInput').value=firebaseUrl; $('syncIdInput').value=syncId; $('syncIdOverride').value='';
+  $('geminiKeyInput').value=geminiKey; $('groqKeyInput').value=groqKey;
+  $('aiProviderSelect').value=aiProvider; toggleProviderUI();
+  $('settingsModal').classList.add('active');
+}
+function toggleProviderUI() {
+  const p=$('aiProviderSelect').value;
+  $('groqSetup').style.display=p==='groq'?'block':'none';
+  $('geminiSetup').style.display=p==='gemini'?'block':'none';
+}
 function closeSettings() { $('settingsModal').classList.remove('active'); }
 function copySyncId() { navigator.clipboard.writeText(syncId).then(()=>{ const b=$('settingsModal').querySelector('.btn-copy'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy',1500); }); }
 function saveSettings() {
@@ -708,10 +732,13 @@ function saveSettings() {
   const ov=$('syncIdOverride').value.trim(); if(ov){syncId=ov;localStorage.setItem('syncId',syncId);}
   firebaseUrl=u; localStorage.setItem('firebaseUrl',firebaseUrl);
   geminiKey=$('geminiKeyInput').value.trim(); localStorage.setItem('geminiKey',geminiKey);
+  groqKey=$('groqKeyInput').value.trim(); localStorage.setItem('groqKey',groqKey);
+  aiProvider=$('aiProviderSelect').value; localStorage.setItem('aiProvider',aiProvider);
   closeSettings(); updateSyncUI();
   if(firebaseUrl){pullFromCloud().then(()=>{pushToCloud();startSync();});}
 }
 $('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});
+$('aiProviderSelect').addEventListener('change',toggleProviderUI);
 
 // ══════════════════════════════════════════
 // DASHBOARD
@@ -990,6 +1017,27 @@ function showAILoad() { const m=$('aiMessages'),d=document.createElement('div');
 function hideAILoad() { const e=$('aiLoad');if(e)e.remove(); }
 function usePrompt(t) { $('aiInput').value=t; sendToAI(); }
 
+function getActiveKey() {
+  if (aiProvider==='groq') return groqKey;
+  return geminiKey;
+}
+
+async function callAI(p) {
+  if (aiProvider==='groq') return callGroq(p);
+  return callGemini(p);
+}
+
+async function callGroq(p) {
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:p}],temperature:0.3,max_tokens:2048})
+  });
+  if(!r.ok) { const errText=await r.text(); console.error('Groq API error:',r.status,errText); throw new Error(`API ${r.status}: ${errText.slice(0,200)}`); }
+  const d=await r.json();
+  return d.choices[0].message.content;
+}
+
 async function callGemini(p) {
   const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,{
     method:'POST',headers:{'Content-Type':'application/json'},
@@ -1003,7 +1051,7 @@ async function callGemini(p) {
 
 async function sendToAI() {
   const input=$('aiInput').value.trim(); if(!input) return;
-  if(!geminiKey){addAIMsg('Add your Gemini API key in Settings first.','error');return;}
+  if(!getActiveKey()){addAIMsg('Add your AI API key in Settings first.','error');return;}
   addAIMsg(input,'user'); $('aiInput').value=''; $('aiSendBtn').disabled=true; showAILoad();
 
   const taskList=D.tasks.slice(0,30).map(t=>`- "${t.text}" [${t.priority}]${t.category?' #'+t.category:''}${t.projectId?' proj:'+t.projectId:''}${t.completed?' (done)':''}`).join('\n');
@@ -1021,7 +1069,7 @@ Return JSON only (no fences). Choose ONE:
 Parse dates naturally. Reuse existing categories/projects when they fit.`;
 
   try {
-    const raw=await callGemini(sys+'\n\nUser: '+input); hideAILoad();
+    const raw=await callAI(sys+'\n\nUser: '+input); hideAILoad();
     const res=JSON.parse(raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
     if(res.action==='create'&&res.tasks) {
       let c=0; for(const t of res.tasks) { D.tasks.unshift({id:Date.now()+c,text:t.text,completed:false,priority:t.priority||'medium',category:t.category||'',requestor:t.requestor||'',projectId:t.projectId||null,dueDate:t.dueDate||defaultDueDate(),createdAt:new Date().toISOString()}); c++; }
@@ -1035,13 +1083,13 @@ Parse dates naturally. Reuse existing categories/projects when they fit.`;
 }
 
 async function organizeWithAI() {
-  if(!geminiKey){addAIMsg('Add Gemini API key in Settings.','error');return;}
+  if(!getActiveKey()){addAIMsg('Add your AI API key in Settings first.','error');return;}
   if(!D.tasks.filter(t=>!t.completed).length){addAIMsg('No active tasks to organize.','error');return;}
   addAIMsg('Organize my tasks','user'); $('aiSendBtn').disabled=true; showAILoad();
   const tl=D.tasks.filter(t=>!t.completed).map(t=>`- "${t.text}" [${t.priority}]${t.category?' #'+t.category:''}${t.dueDate?' due:'+t.dueDate:''}`).join('\n');
   const sys=`Task management AI. Today: ${todayStr()}.\nActive tasks:\n${tl}\n\nOrganize these. Return JSON (no fences):\n{"action":"organize","updates":[{"text":"exact text","priority":"low|medium|high","category":"..."}],"message":"brief explanation"}`;
   try {
-    const raw=await callGemini(sys); hideAILoad();
+    const raw=await callAI(sys); hideAILoad();
     const res=JSON.parse(raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
     if(res.updates){let u=0;for(const up of res.updates){const t=D.tasks.find(t=>t.text===up.text);if(t){if(up.priority)t.priority=up.priority;if(up.category)t.category=up.category;u++;}}
     saveLocal();renderTasks();addAIMsg(res.message||`Organized ${u} tasks.`,'assistant');}
