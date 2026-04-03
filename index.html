@@ -273,6 +273,19 @@
   .modal .btn-save { padding: 7px 14px; background: var(--accent); color: white; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; }
   .section-divider { border-top: 1px solid var(--border); margin: 16px 0 12px; }
 
+  /* ── Edit Task Modal ── */
+  .edit-form label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; margin-top: 12px; }
+  .edit-form label:first-child { margin-top: 0; }
+  .edit-form input[type="text"], .edit-form input[type="date"], .edit-form select {
+    width: 100%; padding: 8px 10px; background: var(--bg-base); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 13px; color: var(--text-primary); outline: none; font-family: var(--font);
+  }
+  .edit-form input:focus, .edit-form select:focus { border-color: var(--accent); }
+  .edit-form select option { background: var(--bg-elevated); color: var(--text-primary); }
+  .edit-form .edit-row { display: flex; gap: 10px; }
+  .edit-form .edit-row > div { flex: 1; }
+  .edit-created { font-size: 11px; color: var(--text-tertiary); margin-top: 14px; }
+
   /* ── Mobile bottom nav ── */
   .mobile-nav {
     display: none;
@@ -788,13 +801,85 @@ $('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask();});
 function toggleTask(id) { const t=D.tasks.find(t=>t.id===id); if(t) t.completed=!t.completed; saveLocal(); renderTasks(); }
 function deleteTask(id) { D.tasks=D.tasks.filter(t=>t.id!==id); saveLocal(); renderTasks(); }
 function startEdit(id) {
-  const el=document.querySelector(`[data-id="${id}"] .task-title`), t=D.tasks.find(t=>t.id===id);
-  if(!el||!t) return;
-  const inp=document.createElement('input'); inp.className='task-edit-input'; inp.value=t.text;
-  el.replaceWith(inp); inp.focus(); inp.select();
-  const fin=()=>{const v=inp.value.trim();if(v)t.text=v;saveLocal();renderTasks();};
-  inp.addEventListener('blur',fin);
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter')fin();if(e.key==='Escape')renderTasks();});
+  const t = D.tasks.find(t => t.id === id);
+  if (!t) return;
+
+  const projOptions = D.projects.map(p =>
+    `<option value="${p.id}" ${t.projectId===p.id?'selected':''}>${escHtml(p.name)}</option>`
+  ).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:440px;">
+      <h2>Edit Task</h2>
+      <div class="edit-form">
+        <label>Title</label>
+        <input type="text" id="editTitle" value="${escHtml(t.text)}">
+
+        <div class="edit-row">
+          <div>
+            <label>Priority</label>
+            <select id="editPriority">
+              <option value="low" ${t.priority==='low'?'selected':''}>Low</option>
+              <option value="medium" ${t.priority==='medium'?'selected':''}>Medium</option>
+              <option value="high" ${t.priority==='high'?'selected':''}>Urgent</option>
+            </select>
+          </div>
+          <div>
+            <label>Due Date</label>
+            <input type="date" id="editDueDate" value="${t.dueDate||''}">
+          </div>
+        </div>
+
+        <div class="edit-row">
+          <div>
+            <label>Category</label>
+            <input type="text" id="editCategory" value="${escHtml(t.category||'')}" placeholder="Label">
+          </div>
+          <div>
+            <label>Project</label>
+            <select id="editProject">
+              <option value="">None</option>
+              ${projOptions}
+            </select>
+          </div>
+        </div>
+
+        <div class="edit-created">Created: ${t.createdAt ? new Date(t.createdAt).toLocaleString() : 'Unknown'}</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="editCancelBtn">Cancel</button>
+        <button class="btn-save" id="editSaveBtn">Save Changes</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Focus title
+  setTimeout(() => { const ti = document.getElementById('editTitle'); ti.focus(); ti.select(); }, 50);
+
+  // Save
+  document.getElementById('editSaveBtn').onclick = () => {
+    const title = document.getElementById('editTitle').value.trim();
+    if (title) t.text = title;
+    t.priority = document.getElementById('editPriority').value;
+    t.dueDate = document.getElementById('editDueDate').value || null;
+    t.category = document.getElementById('editCategory').value.trim();
+    t.projectId = document.getElementById('editProject').value || null;
+    saveLocal(); renderTasks(); overlay.remove();
+  };
+
+  // Cancel
+  document.getElementById('editCancelBtn').onclick = () => overlay.remove();
+
+  // Close on overlay click
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+  // Enter to save, Escape to cancel
+  overlay.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); document.getElementById('editSaveBtn').click(); }
+    if (e.key === 'Escape') overlay.remove();
+  });
 }
 
 [$('searchInput'),$('filterStatus'),$('filterPriority'),$('filterCategory'),$('filterProject')].forEach(el=>{
