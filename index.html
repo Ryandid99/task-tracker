@@ -1508,6 +1508,109 @@ function uploadWithProgress(url, formData, headers) {
 }
 
 // ══════════════════════════════════════════
+// AUDIO COMPRESSION & CHUNKING
+// ══════════════════════════════════════════
+const MAX_UPLOAD_SIZE = 24 * 1024 * 1024; // 24MB to stay under Groq's 25MB limit
+
+async function compressAudio(file) {
+  // If already small enough, return as-is
+  if (file.size <= MAX_UPLOAD_SIZE) return [file];
+
+  // Decode audio
+  const arrayBuf = await file.arrayBuffer();
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let audioBuffer;
+  try {
+    audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+  } catch {
+    // If decoding fails, fall back to chunking the raw file
+    return chunkFile(file);
+  }
+
+  const duration = audioBuffer.duration;
+  const sampleRate = 16000; // downsample to 16kHz (Whisper optimal)
+  const numChannels = 1; // mono
+
+  // Calculate chunk duration to stay under size limit
+  // At 16kHz mono 16-bit, ~1 minute ≈ 1.9MB as WAV, so ~12 min per chunk is safe
+  const chunkDurationSec = 720; // 12 minutes per chunk
+  const numChunks = Math.ceil(duration / chunkDurationSec);
+  const chunks = [];
+
+  for (let i = 0; i < numChunks; i++) {
+    const startSec = i * chunkDurationSec;
+    const endSec = Math.min((i + 1) * chunkDurationSec, duration);
+    const startSample = Math.floor(startSec * audioBuffer.sampleRate);
+    const endSample = Math.floor(endSec * audioBuffer.sampleRate);
+    const length = endSample - startSample;
+
+    // Create offline context at lower sample rate
+    const offlineCtx = new OfflineAudioContext(numChannels, Math.floor(length * sampleRate / audioBuffer.sampleRate), sampleRate);
+    const source = offlineCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(offlineCtx.destination);
+    source.start(0, startSec, endSec - startSec);
+
+    const rendered = await offlineCtx.startRendering();
+    const wavBlob = audioBufferToWav(rendered);
+    chunks.push(new File([wavBlob], `chunk_${i}.wav`, { type: 'audio/wav' }));
+  }
+
+  audioCtx.close();
+  return chunks;
+}
+
+function chunkFile(file) {
+  // Raw file chunking fallback - split into ~20MB pieces
+  const chunks = [];
+  const chunkSize = 20 * 1024 * 1024;
+  for (let i = 0; i < file.size; i += chunkSize) {
+    const slice = file.slice(i, i + chunkSize);
+    chunks.push(new File([slice], `chunk_${chunks.length}.${file.name.split('.').pop()}`, { type: file.type }));
+  }
+  return chunks;
+}
+
+function audioBufferToWav(buffer) {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const format = 1; // PCM
+  const bitsPerSample = 16;
+  const samples = buffer.getChannelData(0);
+  const dataLength = samples.length * (bitsPerSample / 8);
+  const headerLength = 44;
+  const totalLength = headerLength + dataLength;
+  const arrayBuffer = new ArrayBuffer(totalLength);
+  const view = new DataView(arrayBuffer);
+
+  // WAV header
+  const writeStr = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+  writeStr(0, 'RIFF');
+  view.setUint32(4, totalLength - 8, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, format, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true);
+  view.setUint16(32, numChannels * (bitsPerSample / 8), true);
+  view.setUint16(34, bitsPerSample, true);
+  writeStr(36, 'data');
+  view.setUint32(40, dataLength, true);
+
+  // Write PCM samples
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    offset += 2;
+  }
+
+  return new Blob([arrayBuffer], { type: 'audio/wav' });
+}
+
+// ══════════════════════════════════════════
 // AUDIO UPLOAD
 // ══════════════════════════════════════════
 async function handleAudioUpload(input) {
@@ -1529,19 +1632,30 @@ async function handleAudioUpload(input) {
   try {
     let transcript = '';
 
-    // Step 1: Upload
+    // Step 1: Compress/chunk if needed
     setProgressStep(1);
+    $('tpStep1').querySelector('.tp-icon').nextSibling.textContent = file.size > MAX_UPLOAD_SIZE ? 'Compressing & uploading audio' : 'Uploading audio';
 
     if (groqKey) {
-      const formData = new FormData();
-      formData.append('file', file, file.name);
-      formData.append('model', 'whisper-large-v3');
-      formData.append('response_format', 'verbose_json');
+      const chunks = await compressAudio(file);
+      const totalChunks = chunks.length;
+      let allText = [];
 
-      // Step 2: Transcribing (upload complete → transcription starts)
-      const data = await uploadWithProgress('https://api.groq.com/openai/v1/audio/transcriptions', formData, { 'Authorization': 'Bearer ' + groqKey });
+      for (let i = 0; i < chunks.length; i++) {
+        setUploadPct(Math.round((i / totalChunks) * 100));
+        if (totalChunks > 1) $('tpUploadPct').textContent = `Part ${i+1}/${totalChunks}`;
+
+        const formData = new FormData();
+        formData.append('file', chunks[i], chunks[i].name);
+        formData.append('model', 'whisper-large-v3');
+        formData.append('response_format', 'verbose_json');
+
+        const data = await uploadWithProgress('https://api.groq.com/openai/v1/audio/transcriptions', formData, { 'Authorization': 'Bearer ' + groqKey });
+        allText.push(data.text);
+      }
+
       setProgressStep(2);
-      transcript = data.text;
+      transcript = allText.join(' ');
     } else {
       const reader = new FileReader();
       const base64 = await new Promise(resolve => {
