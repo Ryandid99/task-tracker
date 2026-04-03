@@ -1515,6 +1515,8 @@ const MAX_UPLOAD_SIZE = 24 * 1024 * 1024; // 24MB
 async function prepareAudioForUpload(file) {
   if (file.size <= MAX_UPLOAD_SIZE) return [file];
 
+  console.log('File too large (' + (file.size/1024/1024).toFixed(1) + 'MB), re-encoding...');
+
   // Re-encode via AudioContext → mono 16kHz WAV (much smaller, Whisper-optimal)
   try {
     const arrayBuf = await file.arrayBuffer();
@@ -1653,8 +1655,9 @@ async function handleAudioUpload(input) {
   } catch (e) {
     hideProgress();
     console.error('Upload error:', e);
-    note.content = '[Error: ' + e.message + ']';
+    note.content = 'Error: ' + (e.message || e) + '\n\nFile: ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
     saveLocal(); renderNotes();
+    alert('Audio processing failed: ' + (e.message || e));
   }
 }
 
