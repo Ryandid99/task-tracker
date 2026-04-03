@@ -784,6 +784,10 @@
       <label>Gemini API Key</label>
       <input type="text" id="geminiKeyInput" placeholder="AIza...">
     </div>
+    <div class="section-divider"></div>
+    <div class="sidebar-section-title" style="padding:0;margin-bottom:10px;">ACCOUNT MANAGEMENT</div>
+    <div id="accountList"></div>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
       <button class="btn-save" onclick="saveSettings()">Save</button>
@@ -878,7 +882,71 @@ function openSettings() {
   $('dbUrlInput').value=firebaseUrl; $('syncIdInput').value=syncId; $('syncIdOverride').value='';
   $('geminiKeyInput').value=geminiKey; $('groqKeyInput').value=groqKey;
   $('aiProviderSelect').value=aiProvider; toggleProviderUI();
+  renderAccountList();
   $('settingsModal').classList.add('active');
+}
+
+function renderAccountList() {
+  const profiles = getProfiles();
+  const currentUser = localStorage.getItem('currentProfile');
+  const el = $('accountList');
+  if (!profiles.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-tertiary);">No accounts</div>'; return; }
+
+  el.innerHTML = profiles.map((p, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;">
+      <span style="width:26px;height:26px;border-radius:50%;background:${p.isAdmin?'var(--accent)':'var(--bg-active)'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;flex-shrink:0;">${escHtml(p.username.charAt(0).toUpperCase())}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">${escHtml(p.username)} ${p.isAdmin?'<span style="font-size:10px;color:var(--accent);font-weight:600;">(Admin)</span>':''} ${p.username===currentUser?'<span style="font-size:10px;color:var(--success);">&#9679; You</span>':''}</div>
+        <div style="font-size:11px;color:var(--text-tertiary);font-family:monospace;" id="acctPass${i}">Password: ****</div>
+      </div>
+      <button onclick="toggleShowPass(${i})" style="padding:3px 8px;font-size:11px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);cursor:pointer;font-family:var(--font);" id="acctToggle${i}">Show</button>
+      <button onclick="resetPassword(${i})" style="padding:3px 8px;font-size:11px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;color:var(--warning);cursor:pointer;font-family:var(--font);">Reset</button>
+      ${!p.isAdmin?`<button onclick="deleteAccount(${i})" style="padding:3px 8px;font-size:11px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--danger);cursor:pointer;font-family:var(--font);">Delete</button>`:''}
+    </div>`).join('');
+}
+
+function toggleShowPass(i) {
+  const profiles = getProfiles();
+  const p = profiles[i];
+  const el = $('acctPass'+i);
+  const btn = $('acctToggle'+i);
+  if (btn.textContent === 'Show') {
+    el.textContent = 'Password: ' + (p.password || '(not stored — user must log in once to save)');
+    btn.textContent = 'Hide';
+  } else {
+    el.textContent = 'Password: ****';
+    btn.textContent = 'Show';
+  }
+}
+
+async function resetPassword(i) {
+  const profiles = getProfiles();
+  const p = profiles[i];
+  const newPass = prompt('Enter new password for "' + p.username + '":');
+  if (!newPass || newPass.length < 4) { if (newPass !== null) alert('Password must be at least 4 characters.'); return; }
+  p.password = newPass;
+  p.syncId = await hashCredentials(p.username, newPass);
+  saveProfiles(profiles);
+
+  // If resetting own password, update current session
+  const currentUser = localStorage.getItem('currentProfile');
+  if (p.username === currentUser) {
+    syncId = p.syncId;
+    localStorage.setItem('syncId', syncId);
+  }
+
+  renderAccountList();
+  alert('Password reset for "' + p.username + '".');
+}
+
+function deleteAccount(i) {
+  const profiles = getProfiles();
+  const p = profiles[i];
+  if (p.isAdmin) { alert('Cannot delete admin account.'); return; }
+  if (!confirm('Delete account "' + p.username + '"? Their data will remain in the database but they won\'t be able to log in.')) return;
+  profiles.splice(i, 1);
+  saveProfiles(profiles);
+  renderAccountList();
 }
 function toggleProviderUI() {
   const p=$('aiProviderSelect').value;
@@ -2102,13 +2170,16 @@ async function handleLogin(mode) {
   localStorage.setItem('currentProfile', user);
 
   if (existing) {
-    // Verify password by checking syncId matches
-    if (existing.syncId !== id) {
+    // Verify password — check stored password or fall back to syncId hash
+    const passMatch = existing.password ? (existing.password === pass) : (existing.syncId === id);
+    if (!passMatch) {
       $('loginError').textContent = 'Incorrect password.';
       $('loginError').style.display = 'block';
       localStorage.removeItem('currentProfile');
       return;
     }
+    // Save password to profile if not stored yet (migration)
+    if (!existing.password) { existing.password = pass; }
     // Restore saved config
     firebaseUrl = existing.firebaseUrl || firebaseUrl;
     groqKey = existing.groqKey || groqKey;
@@ -2122,7 +2193,7 @@ async function handleLogin(mode) {
     // Create new account — inherit shared config
     const shared = getSharedConfig();
     const isFirst = profiles.length === 0;
-    profiles.push({ username: user, syncId: id, firebaseUrl: shared.firebaseUrl||'', groqKey: shared.groqKey||'', geminiKey: shared.geminiKey||'', aiProvider: shared.aiProvider||'groq', isAdmin: isFirst });
+    profiles.push({ username: user, password: pass, syncId: id, firebaseUrl: shared.firebaseUrl||'', groqKey: shared.groqKey||'', geminiKey: shared.geminiKey||'', aiProvider: shared.aiProvider||'groq', isAdmin: isFirst });
     // First account is automatically admin
     firebaseUrl = shared.firebaseUrl || '';
     groqKey = shared.groqKey || '';
