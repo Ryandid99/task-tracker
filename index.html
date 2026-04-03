@@ -138,6 +138,7 @@
   .tag-project { background: var(--success-subtle); color: var(--success); }
   .tag-due { font-size: 11px; color: var(--text-tertiary); }
   .tag-due.overdue { color: var(--danger); font-weight: 500; }
+  .tag-created { font-size: 11px; color: var(--text-tertiary); font-weight: 400; }
   .task-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
   .task-item:hover .task-actions { opacity: 1; }
   .act-btn { width: 26px; height: 26px; border-radius: 4px; border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.1s; }
@@ -766,12 +767,19 @@ $('plannerNote').addEventListener('input', function() {
 // ══════════════════════════════════════════
 // TASKS
 // ══════════════════════════════════════════
+function defaultDueDate() {
+  const d = new Date(); d.setDate(d.getDate() + 7);
+  return d.toISOString().split('T')[0];
+}
+
+function setDefaultDueDate() { $('dueDateInput').value = defaultDueDate(); }
+
 function addTask() {
   const text=$('taskInput').value.trim(); if(!text) return;
   D.tasks.unshift({ id:Date.now(), text, completed:false, priority:$('prioritySelect').value,
     category:$('categoryInput').value.trim(), projectId:$('projectSelect').value||null,
-    dueDate:$('dueDateInput').value||null, createdAt:new Date().toISOString() });
-  $('taskInput').value=''; $('categoryInput').value=''; $('dueDateInput').value='';
+    dueDate:$('dueDateInput').value||defaultDueDate(), createdAt:new Date().toISOString() });
+  $('taskInput').value=''; $('categoryInput').value=''; setDefaultDueDate();
   saveLocal(); renderTasks(); $('taskInput').focus();
 }
 $('addBtn').addEventListener('click',addTask);
@@ -846,8 +854,15 @@ function renderTasks() {
   });
 }
 
+function fmtCreated(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function taskHtml(t) {
   const due=fmtDate(t.dueDate), ov=due==='Overdue'&&!t.completed;
+  const created=fmtCreated(t.createdAt);
   const proj=t.projectId?D.projects.find(p=>p.id===t.projectId):null;
   return `<div class="task-item ${t.completed?'completed':''}" data-id="${t.id}" draggable="true">
     <div class="task-status" onclick="toggleTask(${t.id})">${t.completed?'&#10003;':''}</div>
@@ -856,7 +871,8 @@ function taskHtml(t) {
       ${proj?`<span class="tag tag-project" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>`:''}
       ${t.category?`<span class="tag tag-category">${escHtml(t.category)}</span>`:''}
       <span class="tag tag-priority-${t.priority}">${t.priority==='high'?'Urgent':t.priority==='medium'?'Med':'Low'}</span>
-      ${due?`<span class="tag-due ${ov?'overdue':''}">${due}</span>`:''}
+      ${created?`<span class="tag-created">Created ${created}</span>`:''}
+      ${due?`<span class="tag-due ${ov?'overdue':''}">Due ${due}</span>`:''}
     </div>
     <div class="task-actions">
       <button class="act-btn" onclick="startEdit(${t.id})">&#9998;</button>
@@ -905,7 +921,7 @@ Parse dates naturally. Reuse existing categories/projects when they fit.`;
     const raw=await callGemini(sys+'\n\nUser: '+input); hideAILoad();
     const res=JSON.parse(raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
     if(res.action==='create'&&res.tasks) {
-      let c=0; for(const t of res.tasks) { D.tasks.unshift({id:Date.now()+c,text:t.text,completed:false,priority:t.priority||'medium',category:t.category||'',projectId:t.projectId||null,dueDate:t.dueDate||null,createdAt:new Date().toISOString()}); c++; }
+      let c=0; for(const t of res.tasks) { D.tasks.unshift({id:Date.now()+c,text:t.text,completed:false,priority:t.priority||'medium',category:t.category||'',projectId:t.projectId||null,dueDate:t.dueDate||defaultDueDate(),createdAt:new Date().toISOString()}); c++; }
       saveLocal(); renderTasks(); addAIMsg(res.message||`Created ${c} task(s).`,'system');
     } else if(res.action==='organize'&&res.updates) {
       let u=0; for(const up of res.updates) { const t=D.tasks.find(t=>t.text===up.text); if(t){if(up.priority)t.priority=up.priority;if(up.category)t.category=up.category;u++;} }
@@ -1235,7 +1251,7 @@ document.addEventListener('keydown', e => {
 // INIT
 // ══════════════════════════════════════════
 if (!localStorage.getItem('syncId')) localStorage.setItem('syncId', syncId);
-updateSyncUI(); renderDashboard(); renderProjectSidebar();
+updateSyncUI(); renderDashboard(); renderProjectSidebar(); setDefaultDueDate();
 if (firebaseUrl) { pullFromCloud(); startSync(); }
 </script>
 </body>
