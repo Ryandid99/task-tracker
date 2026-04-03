@@ -1214,50 +1214,75 @@ function stopRecording() {
   $('recLabel').textContent = 'Record Meeting';
 }
 
-let pendingAudioBase64 = null;
+let pendingTranscript = null;
+let pendingAudioBlob = null;
 
 async function processRecording() {
   const note = D.notes.find(n => n.id === activeNoteId);
   if (!note) return;
 
-  note.content += '\n\n[Detecting languages...]\n';
-  renderNotes();
-
-  if (!geminiKey) {
-    note.content = note.content.replace('[Detecting languages...]', '[Add Gemini API key in Settings for AI transcription]');
+  const key = groqKey || geminiKey;
+  if (!key) {
+    note.content += '\n\n[Add your AI API key in Settings for transcription]\n';
     saveLocal(); renderNotes(); return;
   }
 
-  const blob = new Blob(audioChunks, { type: 'audio/webm' });
-  const reader = new FileReader();
-  reader.onloadend = async () => {
-    pendingAudioBase64 = reader.result.split(',')[1];
-    try {
-      // Step 1: Detect languages
+  note.content += '\n\n[Transcribing audio...]\n';
+  renderNotes();
+
+  pendingAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+  try {
+    // Step 1: Transcribe with Groq Whisper (or Gemini fallback)
+    let transcript = '';
+    if (groqKey) {
+      const formData = new FormData();
+      formData.append('file', pendingAudioBlob, 'recording.webm');
+      formData.append('model', 'whisper-large-v3');
+      formData.append('response_format', 'verbose_json');
+      const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + groqKey },
+        body: formData
+      });
+      if (!r.ok) throw new Error('Transcription failed: ' + r.status);
+      const data = await r.json();
+      transcript = data.text;
+    } else {
+      // Gemini fallback for audio
+      const reader = new FileReader();
+      const base64 = await new Promise(resolve => {
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(pendingAudioBlob);
+      });
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [
-            { inlineData: { mimeType: 'audio/webm', data: pendingAudioBase64 } },
-            { text: 'Listen to this audio and detect which languages are spoken. Return JSON only (no fences): {"languages":["English","Korean",...],"recommendation":"the language you recommend","reason":"brief reason why this language is best for the minutes"}. Consider which language was dominant, which language the key decisions were in, and which would be most useful for the meeting participants.' }
-          ]}]
-        })
+        body: JSON.stringify({ contents: [{ parts: [
+          { inlineData: { mimeType: 'audio/webm', data: base64 } },
+          { text: 'Transcribe this audio word for word.' }
+        ]}]})
       });
       const data = await r.json();
-      const raw = data.candidates[0].content.parts[0].text;
-      const result = JSON.parse(raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
-
-      note.content = note.content.replace('[Detecting languages...]', '[Waiting for language selection...]');
-      saveLocal(); renderNotes();
-
-      // Show language picker modal
-      showLangPicker(result.languages, result.recommendation, result.reason);
-    } catch (e) {
-      note.content = note.content.replace('[Detecting languages...]', '[Error detecting languages. Try again.]');
-      saveLocal(); renderNotes();
+      transcript = data.candidates[0].content.parts[0].text;
     }
-  };
-  reader.readAsDataURL(blob);
+
+    pendingTranscript = transcript;
+
+    // Step 2: Detect languages from transcript
+    const langRaw = await callAI(
+      'Analyze this transcript and detect which languages are used. Return JSON only (no fences): {"languages":["English","Korean",...],"recommendation":"the language you recommend","reason":"brief reason why"}\n\nTranscript:\n' + transcript
+    );
+    const langResult = JSON.parse(langRaw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
+
+    note.content = note.content.replace('[Transcribing audio...]', '[Waiting for language selection...]');
+    saveLocal(); renderNotes();
+
+    showLangPicker(langResult.languages, langResult.recommendation, langResult.reason);
+  } catch (e) {
+    console.error('Recording error:', e);
+    note.content = note.content.replace('[Transcribing audio...]', '[Error transcribing. ' + e.message + ']');
+    saveLocal(); renderNotes();
+  }
 }
 
 function showLangPicker(languages, recommendation, reason) {
@@ -1295,39 +1320,31 @@ function showLangPicker(languages, recommendation, reason) {
     overlay.remove();
     const note = D.notes.find(n => n.id === activeNoteId);
     if (note) { note.content = note.content.replace('[Waiting for language selection...]', '[Cancelled]'); saveLocal(); renderNotes(); }
-    pendingAudioBase64 = null;
+    pendingTranscript = null;
   };
 }
 
 async function generateMinutes(language) {
   const note = D.notes.find(n => n.id === activeNoteId);
-  if (!note || !pendingAudioBase64) return;
+  if (!note || !pendingTranscript) return;
 
   note.content = note.content.replace('[Waiting for language selection...]', '[Generating meeting minutes...]\n');
   renderNotes();
 
   const langInstruction = language === 'Bilingual'
-    ? 'Write the meeting minutes in both languages used in the recording, with each section having both language versions.'
+    ? 'Write the meeting minutes in both languages used, with each section in both languages.'
     : `Write the entire meeting minutes in ${language}.`;
 
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [
-          { inlineData: { mimeType: 'audio/webm', data: pendingAudioBase64 } },
-          { text: `Transcribe this meeting recording and create professional meeting minutes. ${langInstruction}\n\nFormat:\n1) Summary\n2) Key Discussion Points\n3) Action Items\n4) Decisions Made\n\nBe thorough and accurate. Preserve important details, names, and specific commitments.` }
-        ]}]
-      })
-    });
-    const data = await r.json();
-    const text = data.candidates[0].content.parts[0].text;
+    const text = await callAI(
+      `Create professional meeting minutes from this transcript. ${langInstruction}\n\nFormat:\n1) Summary\n2) Key Discussion Points\n3) Action Items\n4) Decisions Made\n\nBe thorough and accurate. Preserve important details, names, and specific commitments.\n\nTranscript:\n${pendingTranscript}`
+    );
     note.content = note.content.replace('[Generating meeting minutes...]\n', text);
     note.title = 'Meeting Minutes - ' + new Date().toLocaleDateString();
   } catch (e) {
-    note.content = note.content.replace('[Generating meeting minutes...]\n', '[Error generating minutes. Try again.]');
+    note.content = note.content.replace('[Generating meeting minutes...]\n', '[Error generating minutes. ' + e.message + ']');
   }
-  pendingAudioBase64 = null;
+  pendingTranscript = null;
   saveLocal(); renderNotes();
 }
 
