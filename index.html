@@ -550,9 +550,11 @@
     <div class="page" id="page-notes">
       <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;padding-right:28px;">
         <div><h2>Notes</h2></div>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="quick-btn" onclick="newNote()">+ New Note</button>
           <button class="rec-btn" id="recBtn" onclick="toggleRecording()"><span class="rec-dot"></span><span id="recLabel">Record Meeting</span></button>
+          <button class="quick-btn" onclick="$('audioUpload').click()">&#128228; Upload Audio</button>
+          <input type="file" id="audioUpload" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.mp4" style="display:none;" onchange="handleAudioUpload(this)">
         </div>
       </div>
       <div class="page-body" style="display:flex;gap:16px;">
@@ -562,6 +564,8 @@
         <div style="flex:1;min-width:0;">
           <div class="note-toolbar">
             <input class="note-title-input" id="noteTitleInput" placeholder="Note title...">
+            <button class="quick-btn" id="exportDocxBtn" onclick="exportDocx()" style="font-size:11px;padding:5px 10px;">&#128196; Word</button>
+            <button class="quick-btn" id="exportGDocsBtn" onclick="exportGDocs()" style="font-size:11px;padding:5px 10px;">&#128196; Google Docs</button>
           </div>
           <textarea class="note-editor" id="noteEditor" placeholder="Start writing..."></textarea>
         </div>
@@ -1424,6 +1428,136 @@ async function generateMinutes(language) {
   }
   pendingTranscript = null;
   saveLocal(); renderNotes();
+}
+
+// ══════════════════════════════════════════
+// AUDIO UPLOAD
+// ══════════════════════════════════════════
+async function handleAudioUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  const key = groqKey || geminiKey;
+  if (!key) { alert('Add your AI API key in Settings first.'); return; }
+
+  // Create a new note for this upload
+  const note = { id: 'n'+Date.now(), title: 'Meeting - ' + file.name, content: '', createdAt: new Date().toISOString(), isMeeting: true };
+  D.notes.unshift(note);
+  activeNoteId = note.id;
+  note.content = '[Transcribing uploaded audio...]\n';
+  saveLocal(); renderNotes();
+
+  try {
+    let transcript = '';
+    if (groqKey) {
+      // Groq Whisper
+      const formData = new FormData();
+      formData.append('file', file, file.name);
+      formData.append('model', 'whisper-large-v3');
+      formData.append('response_format', 'verbose_json');
+      const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + groqKey },
+        body: formData
+      });
+      if (!r.ok) { const err = await r.text(); throw new Error('Transcription failed: ' + r.status + ' ' + err.slice(0,200)); }
+      const data = await r.json();
+      transcript = data.text;
+    } else {
+      // Gemini fallback
+      const reader = new FileReader();
+      const base64 = await new Promise(resolve => {
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+      });
+      const mimeType = file.type || 'audio/mp4';
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [
+          { inlineData: { mimeType, data: base64 } },
+          { text: 'Transcribe this audio word for word.' }
+        ]}]})
+      });
+      const data = await r.json();
+      transcript = data.candidates[0].content.parts[0].text;
+    }
+
+    pendingTranscript = transcript;
+
+    // Detect languages
+    const langRaw = await callAI(
+      'Analyze this transcript and detect which languages are used. Return JSON only (no fences): {"languages":["English","Korean",...],"recommendation":"the language you recommend","reason":"brief reason why"}\n\nTranscript:\n' + transcript
+    );
+    const langResult = JSON.parse(langRaw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
+
+    note.content = note.content.replace('[Transcribing uploaded audio...]', '[Waiting for language selection...]');
+    saveLocal(); renderNotes();
+
+    showLangPicker(langResult.languages, langResult.recommendation, langResult.reason);
+  } catch (e) {
+    console.error('Upload error:', e);
+    note.content = note.content.replace('[Transcribing uploaded audio...]', '[Error: ' + e.message + ']');
+    saveLocal(); renderNotes();
+  }
+}
+
+// ══════════════════════════════════════════
+// EXPORT NOTES
+// ══════════════════════════════════════════
+function exportDocx() {
+  const note = D.notes.find(n => n.id === activeNoteId);
+  if (!note || !note.content.trim()) { alert('No note content to export.'); return; }
+
+  // Build a simple .docx using HTML-in-Word format (universally compatible)
+  const title = escHtml(note.title);
+  const date = new Date(note.createdAt).toLocaleDateString();
+  const content = escHtml(note.content).replace(/\n/g, '<br>');
+
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="utf-8"><title>${title}</title>
+    <style>
+      body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.6; color: #333; margin: 40px; }
+      h1 { font-size: 18pt; color: #1a1a1a; margin-bottom: 4px; }
+      .date { font-size: 10pt; color: #888; margin-bottom: 20px; }
+      .content { white-space: pre-wrap; }
+    </style></head>
+    <body>
+      <h1>${title}</h1>
+      <div class="date">${date}</div>
+      <div class="content">${content}</div>
+    </body></html>`;
+
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (note.title || 'note').replace(/[^a-zA-Z0-9\s-]/g, '') + '.doc';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportGDocs() {
+  const note = D.notes.find(n => n.id === activeNoteId);
+  if (!note || !note.content.trim()) { alert('No note content to export.'); return; }
+
+  // Copy content to clipboard and open Google Docs
+  const text = note.title + '\n' + new Date(note.createdAt).toLocaleDateString() + '\n\n' + note.content;
+  navigator.clipboard.writeText(text).then(() => {
+    // Open a new blank Google Doc
+    window.open('https://docs.google.com/document/create', '_blank');
+    alert('Meeting minutes copied to clipboard!\\n\\nA new Google Doc is opening — just paste (Ctrl+V) to add your minutes.');
+  }).catch(() => {
+    // Fallback: download as plain text
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (note.title || 'note') + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 
 // ══════════════════════════════════════════
