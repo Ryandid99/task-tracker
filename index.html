@@ -554,7 +554,7 @@
     <div class="sidebar-spacer"></div>
     <div class="sidebar-footer">
       <div class="sync-indicator" id="syncIndicator"><span class="sync-dot"></span><span id="syncLabel">Offline</span></div>
-      <button class="nav-item" onclick="openSettings()"><span class="icon">&#9881;</span> Settings</button>
+      <button class="nav-item" id="settingsNavBtn" onclick="openSettings()"><span class="icon">&#9881;</span> Settings</button>
       <button class="nav-item" onclick="toggleTheme()"><span class="icon">&#9790;</span> <span id="themeLabel">Light Mode</span></button>
       <button class="nav-item" onclick="logout()" style="color:var(--danger);"><span class="icon">&#10140;</span> Sign Out</button>
     </div>
@@ -568,7 +568,7 @@
       <div class="logo">W</div>
       <span>WorkHub</span>
       <button class="mobile-header-btn" onclick="toggleTheme()" title="Theme">&#9790;</button>
-      <button class="mobile-header-btn" onclick="openSettings()" title="Settings">&#9881;</button>
+      <button class="mobile-header-btn" id="mobileSettingsBtn" onclick="openSettings()" title="Settings">&#9881;</button>
       <button class="mobile-header-btn" onclick="openMobileSidebar()" title="Menu">&#9776;</button>
     </div>
 
@@ -896,12 +896,21 @@ function saveSettings() {
   aiProvider=$('aiProviderSelect').value; localStorage.setItem('aiProvider',aiProvider);
   closeSettings(); updateSyncUI();
 
-  // Save config to profile
+  // Save config to profile and shared config (admin only)
   const currentUser = localStorage.getItem('currentProfile');
   if (currentUser) {
     const profiles = getProfiles();
     const p = profiles.find(p => p.username === currentUser);
-    if (p) { p.firebaseUrl = firebaseUrl; p.groqKey = groqKey; p.geminiKey = geminiKey; p.aiProvider = aiProvider; p.syncId = syncId; saveProfiles(profiles); }
+    if (p) {
+      p.firebaseUrl = firebaseUrl; p.groqKey = groqKey; p.geminiKey = geminiKey; p.aiProvider = aiProvider; p.syncId = syncId;
+      // Admin saves to shared config so new accounts inherit it
+      if (p.isAdmin) {
+        saveSharedConfig({ firebaseUrl, groqKey, geminiKey, aiProvider });
+        // Also update all existing profiles with new config
+        profiles.forEach(pr => { pr.firebaseUrl = firebaseUrl; pr.groqKey = groqKey; pr.geminiKey = geminiKey; pr.aiProvider = aiProvider; });
+      }
+      saveProfiles(profiles);
+    }
   }
 
   if(firebaseUrl){pullFromCloud().then(()=>{pushToCloud();startSync();});}
@@ -2001,6 +2010,9 @@ document.addEventListener('keydown', e => {
 // ══════════════════════════════════════════
 function getProfiles() { return JSON.parse(localStorage.getItem('workhub_profiles') || '[]'); }
 function saveProfiles(p) { localStorage.setItem('workhub_profiles', JSON.stringify(p)); }
+function getSharedConfig() { return JSON.parse(localStorage.getItem('workhub_shared') || '{}'); }
+function saveSharedConfig(c) { localStorage.setItem('workhub_shared', JSON.stringify(c)); }
+function isCurrentAdmin() { const u=localStorage.getItem('currentProfile'); const p=getProfiles().find(p=>p.username===u); return p&&p.isAdmin; }
 
 async function hashCredentials(user, pass) {
   const data = new TextEncoder().encode(user.toLowerCase().trim() + ':' + pass);
@@ -2107,8 +2119,19 @@ async function handleLogin(mode) {
     localStorage.setItem('geminiKey', geminiKey);
     localStorage.setItem('aiProvider', aiProvider);
   } else {
-    // Create new account
-    profiles.push({ username: user, syncId: id, firebaseUrl: '', groqKey: '', geminiKey: '', aiProvider: 'groq' });
+    // Create new account — inherit shared config
+    const shared = getSharedConfig();
+    const isFirst = profiles.length === 0;
+    profiles.push({ username: user, syncId: id, firebaseUrl: shared.firebaseUrl||'', groqKey: shared.groqKey||'', geminiKey: shared.geminiKey||'', aiProvider: shared.aiProvider||'groq', isAdmin: isFirst });
+    // First account is automatically admin
+    firebaseUrl = shared.firebaseUrl || '';
+    groqKey = shared.groqKey || '';
+    geminiKey = shared.geminiKey || '';
+    aiProvider = shared.aiProvider || 'groq';
+    localStorage.setItem('firebaseUrl', firebaseUrl);
+    localStorage.setItem('groqKey', groqKey);
+    localStorage.setItem('geminiKey', geminiKey);
+    localStorage.setItem('aiProvider', aiProvider);
   }
   saveProfiles(profiles);
 
@@ -2122,6 +2145,11 @@ function enterApp() {
   // Reload data
   Object.assign(D, { tasks: [], projects: [], notes: [], bookmarks: [], plannerNotes: {} },
     JSON.parse(localStorage.getItem('workhub') || '{}'));
+
+  // Show/hide settings based on admin status
+  const admin = isCurrentAdmin();
+  $('settingsNavBtn').style.display = admin ? '' : 'none';
+  $('mobileSettingsBtn').style.display = admin ? '' : 'none';
 
   updateSyncUI(); renderDashboard(); renderProjectSidebar(); setDefaultDueDate();
   if (firebaseUrl) { pullFromCloud(); startSync(); }
