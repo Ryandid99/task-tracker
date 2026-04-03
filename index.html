@@ -139,6 +139,7 @@
   .tag-due { font-size: 11px; color: var(--text-tertiary); }
   .tag-due.overdue { color: var(--danger); font-weight: 500; }
   .tag-created { font-size: 11px; color: var(--text-tertiary); font-weight: 400; }
+  .tag-requestor { background: var(--warning-subtle); color: var(--warning); font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
   .task-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
   .task-item:hover .task-actions { opacity: 1; }
   .act-btn { width: 26px; height: 26px; border-radius: 4px; border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.1s; }
@@ -519,6 +520,7 @@
         <div class="add-options">
           <div class="add-opt"><select id="prioritySelect"><option value="low">Low</option><option value="medium" selected>Med</option><option value="high">Urgent</option></select></div>
           <div class="add-opt"><input type="text" id="categoryInput" placeholder="Label" list="catList"><datalist id="catList"></datalist></div>
+          <div class="add-opt"><input type="text" id="requestorInput" placeholder="Requestor" list="reqList"><datalist id="reqList"></datalist></div>
           <div class="add-opt"><select id="projectSelect"><option value="">Project</option></select></div>
           <div class="add-opt"><input type="date" id="dueDateInput"></div>
           <button class="btn-add" id="addBtn">Add</button>
@@ -790,9 +792,10 @@ function setDefaultDueDate() { $('dueDateInput').value = defaultDueDate(); }
 function addTask() {
   const text=$('taskInput').value.trim(); if(!text) return;
   D.tasks.unshift({ id:Date.now(), text, completed:false, priority:$('prioritySelect').value,
-    category:$('categoryInput').value.trim(), projectId:$('projectSelect').value||null,
+    category:$('categoryInput').value.trim(), requestor:$('requestorInput').value.trim(),
+    projectId:$('projectSelect').value||null,
     dueDate:$('dueDateInput').value||defaultDueDate(), createdAt:new Date().toISOString() });
-  $('taskInput').value=''; $('categoryInput').value=''; setDefaultDueDate();
+  $('taskInput').value=''; $('categoryInput').value=''; $('requestorInput').value=''; setDefaultDueDate();
   saveLocal(); renderTasks(); $('taskInput').focus();
 }
 $('addBtn').addEventListener('click',addTask);
@@ -838,12 +841,20 @@ function startEdit(id) {
             <input type="text" id="editCategory" value="${escHtml(t.category||'')}" placeholder="Label">
           </div>
           <div>
+            <label>Requestor</label>
+            <input type="text" id="editRequestor" value="${escHtml(t.requestor||'')}" placeholder="Who requested this?">
+          </div>
+        </div>
+
+        <div class="edit-row">
+          <div>
             <label>Project</label>
             <select id="editProject">
               <option value="">None</option>
               ${projOptions}
             </select>
           </div>
+          <div></div>
         </div>
 
         <div class="edit-created">Created: ${t.createdAt ? new Date(t.createdAt).toLocaleString() : 'Unknown'}</div>
@@ -865,6 +876,7 @@ function startEdit(id) {
     t.priority = document.getElementById('editPriority').value;
     t.dueDate = document.getElementById('editDueDate').value || null;
     t.category = document.getElementById('editCategory').value.trim();
+    t.requestor = document.getElementById('editRequestor').value.trim();
     t.projectId = document.getElementById('editProject').value || null;
     saveLocal(); renderTasks(); overlay.remove();
   };
@@ -905,6 +917,9 @@ function renderTasks() {
   cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;$('filterCategory').appendChild(o);});
   $('filterCategory').value=cc;
   $('catList').innerHTML=''; cats.forEach(c=>{const o=document.createElement('option');o.value=c;$('catList').appendChild(o);});
+
+  const reqs=[...new Set(D.tasks.map(t=>t.requestor).filter(Boolean))].sort();
+  $('reqList').innerHTML=''; reqs.forEach(r=>{const o=document.createElement('option');o.value=r;$('reqList').appendChild(o);});
 
   const pjv=$('filterProject').value;
   const ps=$('projectSelect'); const psv=ps.value;
@@ -955,6 +970,7 @@ function taskHtml(t) {
     <div class="task-tags">
       ${proj?`<span class="tag tag-project" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>`:''}
       ${t.category?`<span class="tag tag-category">${escHtml(t.category)}</span>`:''}
+      ${t.requestor?`<span class="tag-requestor">${escHtml(t.requestor)}</span>`:''}
       <span class="tag tag-priority-${t.priority}">${t.priority==='high'?'Urgent':t.priority==='medium'?'Med':'Low'}</span>
       ${created?`<span class="tag-created">Created ${created}</span>`:''}
       ${due?`<span class="tag-due ${ov?'overdue':''}">Due ${due}</span>`:''}
@@ -1008,7 +1024,7 @@ Parse dates naturally. Reuse existing categories/projects when they fit.`;
     const raw=await callGemini(sys+'\n\nUser: '+input); hideAILoad();
     const res=JSON.parse(raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());
     if(res.action==='create'&&res.tasks) {
-      let c=0; for(const t of res.tasks) { D.tasks.unshift({id:Date.now()+c,text:t.text,completed:false,priority:t.priority||'medium',category:t.category||'',projectId:t.projectId||null,dueDate:t.dueDate||defaultDueDate(),createdAt:new Date().toISOString()}); c++; }
+      let c=0; for(const t of res.tasks) { D.tasks.unshift({id:Date.now()+c,text:t.text,completed:false,priority:t.priority||'medium',category:t.category||'',requestor:t.requestor||'',projectId:t.projectId||null,dueDate:t.dueDate||defaultDueDate(),createdAt:new Date().toISOString()}); c++; }
       saveLocal(); renderTasks(); addAIMsg(res.message||`Created ${c} task(s).`,'system');
     } else if(res.action==='organize'&&res.updates) {
       let u=0; for(const up of res.updates) { const t=D.tasks.find(t=>t.text===up.text); if(t){if(up.priority)t.priority=up.priority;if(up.category)t.category=up.category;u++;} }
