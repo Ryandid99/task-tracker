@@ -483,6 +483,16 @@
             </div>
           </div>
         </div>
+        <div class="grid-2" style="margin-top:12px;">
+          <div class="card">
+            <div class="card-title">Audio Transcription Quota</div>
+            <div id="dashQuota" style="font-size:13px;color:var(--text-tertiary);">No usage data yet — upload an audio file to see your quota.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Sync Status</div>
+            <div id="dashSync" style="font-size:13px;"></div>
+          </div>
+        </div>
         <div class="card" style="margin-top:12px;">
           <div class="card-title">Projects Overview</div>
           <div id="dashProjects"></div>
@@ -806,6 +816,19 @@ function renderDashboard() {
   }).join('') : '<div style="color:var(--text-tertiary);font-size:12px;">No projects yet</div>';
 
   $('countActive').textContent = active;
+
+  // Quota
+  renderQuotaUI();
+
+  // Sync status
+  const dashSync = $('dashSync');
+  if (dashSync) {
+    if (firebaseUrl) {
+      dashSync.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--success);"></span><span>Connected & synced</span></div><div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">Sync ID: ${syncId.slice(0,8)}...</div>`;
+    } else {
+      dashSync.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--text-tertiary);"></span><span>Offline — not syncing</span></div><div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;"><a href="#" onclick="openSettings();return false;" style="color:var(--accent);">Set up sync</a></div>`;
+    }
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1518,8 +1541,9 @@ function uploadWithProgress(url, formData, headers) {
   });
 }
 
+let lastQuotaData = JSON.parse(localStorage.getItem('audioQuota') || 'null');
+
 function updateAudioQuota(xhr) {
-  // Groq returns rate limit info in headers
   const limit = xhr.getResponseHeader('x-ratelimit-limit-audio_seconds') ||
                 xhr.getResponseHeader('x-ratelimit-limit-requests');
   const remaining = xhr.getResponseHeader('x-ratelimit-remaining-audio_seconds') ||
@@ -1529,18 +1553,48 @@ function updateAudioQuota(xhr) {
   if (limit && remaining) {
     const total = parseFloat(limit);
     const left = parseFloat(remaining);
-    const used = total - left;
-    const pct = Math.round((used / total) * 100);
-    const leftMin = Math.round(left / 60);
-    const totalMin = Math.round(total / 60);
+    lastQuotaData = { total, left, reset: reset || '', updatedAt: new Date().toISOString() };
+    localStorage.setItem('audioQuota', JSON.stringify(lastQuotaData));
+    renderQuotaUI();
+  }
+}
 
-    const el = $('audioQuota');
-    const level = pct > 80 ? 'low' : pct > 50 ? 'mid' : 'ok';
+function renderQuotaUI() {
+  if (!lastQuotaData) return;
+  const { total, left, reset, updatedAt } = lastQuotaData;
+  const used = total - left;
+  const pct = Math.round((used / total) * 100);
+  const leftMin = Math.round(left / 60);
+  const totalMin = Math.round(total / 60);
+  const usedMin = Math.round(used / 60);
+  const level = pct > 80 ? 'low' : pct > 50 ? 'mid' : 'ok';
+
+  // Notes page quota badge
+  const el = $('audioQuota');
+  if (el) {
     el.className = 'audio-quota ' + level;
     el.innerHTML = `<span class="q-bar"><span class="q-fill" style="width:${pct}%"></span></span> ${leftMin}m / ${totalMin}m left`;
-    if (reset) {
-      el.title = `Resets in ${reset}`;
-    }
+    if (reset) el.title = `Resets in ${reset}`;
+  }
+
+  // Dashboard quota card
+  const dashEl = $('dashQuota');
+  if (dashEl) {
+    const colors = { low: 'var(--danger)', mid: 'var(--warning)', ok: 'var(--success)' };
+    const updated = new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    dashEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="font-size:28px;font-weight:700;color:${colors[level]}">${leftMin}m</div>
+        <div style="font-size:12px;color:var(--text-tertiary);">remaining<br>of ${totalMin}m/hour</div>
+      </div>
+      <div style="height:6px;background:var(--bg-elevated);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+        <div style="height:100%;width:${pct}%;background:${colors[level]};border-radius:3px;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-tertiary);">
+        <span>${usedMin}m used</span>
+        <span>Updated ${updated}</span>
+      </div>
+      ${reset ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">Resets in ${reset}</div>` : ''}`;
   }
 }
 
