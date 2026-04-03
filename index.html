@@ -232,6 +232,14 @@
   .note-editor { width: 100%; min-height: 300px; padding: 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; color: var(--text-primary); font-family: var(--font); outline: none; resize: vertical; line-height: 1.7; }
   .note-editor:focus { border-color: var(--accent); }
 
+  /* ── Audio Quota ── */
+  .audio-quota { font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; white-space: nowrap; }
+  .audio-quota .q-bar { width: 60px; height: 4px; background: var(--bg-active); border-radius: 2px; overflow: hidden; }
+  .audio-quota .q-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .audio-quota.low .q-fill { background: var(--danger); }
+  .audio-quota.ok .q-fill { background: var(--success); }
+  .audio-quota.mid .q-fill { background: var(--warning); }
+
   /* ── Transcription Progress ── */
   .transcribe-progress { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; }
   .transcribe-progress .tp-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
@@ -569,6 +577,7 @@
           <button class="rec-btn" id="recBtn" onclick="toggleRecording()"><span class="rec-dot"></span><span id="recLabel">Record Meeting</span></button>
           <button class="quick-btn" onclick="$('audioUpload').click()">&#128228; Upload Audio</button>
           <input type="file" id="audioUpload" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.mp4" style="display:none;" onchange="handleAudioUpload(this)">
+          <span id="audioQuota" class="audio-quota"></span>
         </div>
       </div>
       <div class="page-body" style="display:flex;gap:16px;">
@@ -1499,12 +1508,40 @@ function uploadWithProgress(url, formData, headers) {
       if (e.lengthComputable) setUploadPct(Math.round(e.loaded / e.total * 100));
     };
     xhr.onload = () => {
+      // Parse rate limit headers
+      updateAudioQuota(xhr);
       if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
       else reject(new Error('Upload failed: ' + xhr.status + ' ' + xhr.responseText.slice(0, 200)));
     };
     xhr.onerror = () => reject(new Error('Network error during upload'));
     xhr.send(formData);
   });
+}
+
+function updateAudioQuota(xhr) {
+  // Groq returns rate limit info in headers
+  const limit = xhr.getResponseHeader('x-ratelimit-limit-audio_seconds') ||
+                xhr.getResponseHeader('x-ratelimit-limit-requests');
+  const remaining = xhr.getResponseHeader('x-ratelimit-remaining-audio_seconds') ||
+                    xhr.getResponseHeader('x-ratelimit-remaining-requests');
+  const reset = xhr.getResponseHeader('x-ratelimit-reset-audio_seconds');
+
+  if (limit && remaining) {
+    const total = parseFloat(limit);
+    const left = parseFloat(remaining);
+    const used = total - left;
+    const pct = Math.round((used / total) * 100);
+    const leftMin = Math.round(left / 60);
+    const totalMin = Math.round(total / 60);
+
+    const el = $('audioQuota');
+    const level = pct > 80 ? 'low' : pct > 50 ? 'mid' : 'ok';
+    el.className = 'audio-quota ' + level;
+    el.innerHTML = `<span class="q-bar"><span class="q-fill" style="width:${pct}%"></span></span> ${leftMin}m / ${totalMin}m left`;
+    if (reset) {
+      el.title = `Resets in ${reset}`;
+    }
+  }
 }
 
 // ══════════════════════════════════════════
