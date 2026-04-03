@@ -529,8 +529,9 @@
       <label>Password</label>
       <input type="password" id="loginPass" placeholder="Enter password">
       <div class="login-error" id="loginError"></div>
-      <button class="login-btn" onclick="handleLogin()">Sign In</button>
-      <div class="login-footer">Same username + password = same data on any device.<br>First time? Just pick a username and password to get started.</div>
+      <button class="login-btn" onclick="handleLogin('signin')">Sign In</button>
+      <button class="login-btn" onclick="handleLogin('create')" style="background:transparent;border:1px solid var(--accent);color:var(--accent);">Create Account</button>
+      <div class="login-footer">Create an account to get started, or sign in to access your existing data on any device.</div>
     </div>
   </div>
 </div>
@@ -2052,7 +2053,7 @@ async function quickLogin(i) {
   enterApp();
 }
 
-async function handleLogin() {
+async function handleLogin(mode) {
   const user = $('loginUser').value.trim();
   const pass = $('loginPass').value;
 
@@ -2068,15 +2069,34 @@ async function handleLogin() {
     return;
   }
 
+  const profiles = getProfiles();
+  const existing = profiles.find(p => p.username.toLowerCase() === user.toLowerCase());
+
+  if (mode === 'signin' && !existing) {
+    $('loginError').textContent = 'Account not found. Click "Create Account" to make a new one.';
+    $('loginError').style.display = 'block';
+    return;
+  }
+
+  if (mode === 'create' && existing) {
+    $('loginError').textContent = 'Username already exists. Click "Sign In" to log in.';
+    $('loginError').style.display = 'block';
+    return;
+  }
+
   const id = await hashCredentials(user, pass);
   syncId = id;
   localStorage.setItem('syncId', syncId);
   localStorage.setItem('currentProfile', user);
 
-  // Save/update profile
-  const profiles = getProfiles();
-  const existing = profiles.find(p => p.username.toLowerCase() === user.toLowerCase());
   if (existing) {
+    // Verify password by checking syncId matches
+    if (existing.syncId !== id) {
+      $('loginError').textContent = 'Incorrect password.';
+      $('loginError').style.display = 'block';
+      localStorage.removeItem('currentProfile');
+      return;
+    }
     // Restore saved config
     firebaseUrl = existing.firebaseUrl || firebaseUrl;
     groqKey = existing.groqKey || groqKey;
@@ -2086,9 +2106,9 @@ async function handleLogin() {
     localStorage.setItem('groqKey', groqKey);
     localStorage.setItem('geminiKey', geminiKey);
     localStorage.setItem('aiProvider', aiProvider);
-    existing.syncId = id;
   } else {
-    profiles.push({ username: user, syncId: id, firebaseUrl, groqKey, geminiKey, aiProvider });
+    // Create new account
+    profiles.push({ username: user, syncId: id, firebaseUrl: '', groqKey: '', geminiKey: '', aiProvider: 'groq' });
   }
   saveProfiles(profiles);
 
