@@ -171,6 +171,9 @@
   .ai-btn { padding: 7px 12px; font-size: 11px; font-weight: 600; font-family: var(--font); background: var(--accent); color: white; border: none; border-radius: var(--radius); cursor: pointer; }
   .ai-btn:hover { background: var(--accent-hover); }
   .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ai-btn-mic { width: 36px; height: 36px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-secondary); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .ai-btn-mic:hover { border-color: var(--accent); color: var(--accent); }
+  .ai-btn-mic.listening { background: var(--danger); border-color: var(--danger); color: white; animation: pulse 1.5s infinite; }
   .ai-btn-sec { padding: 7px 12px; font-size: 11px; font-weight: 500; font-family: var(--font); background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
   .ai-btn-sec:hover { background: var(--bg-hover); color: var(--text-primary); }
   .ai-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
@@ -505,6 +508,7 @@
           </div>
           <div class="ai-input-row">
             <textarea class="ai-input" id="aiInput" rows="1" placeholder="Tell me what you need to do..."></textarea>
+            <button class="ai-btn-mic" id="micBtn" onclick="toggleVoiceInput()" title="Voice input">&#127908;</button>
             <button class="ai-btn" id="aiSendBtn" onclick="sendToAI()">Send</button>
             <button class="ai-btn-sec" onclick="organizeWithAI()">Organize</button>
           </div>
@@ -1114,6 +1118,65 @@ async function organizeWithAI() {
 
 $('aiInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';});
 $('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendToAI();}});
+
+// ── Voice Input (Speech-to-Text) ──
+let speechRec = null;
+let isListening = false;
+
+function toggleVoiceInput() {
+  if (isListening) { stopVoice(); return; }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { addAIMsg('Speech recognition not supported in this browser. Try Chrome.','error'); return; }
+
+  speechRec = new SpeechRecognition();
+  speechRec.continuous = true;
+  speechRec.interimResults = true;
+  speechRec.lang = ''; // auto-detect (supports English, Korean, and mixed)
+
+  let finalText = $('aiInput').value;
+  const startLen = finalText.length;
+
+  speechRec.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) {
+        finalText += (finalText && !finalText.endsWith(' ') ? ' ' : '') + e.results[i][0].transcript;
+      } else {
+        interim += e.results[i][0].transcript;
+      }
+    }
+    $('aiInput').value = finalText + (interim ? ' ' + interim : '');
+    $('aiInput').style.height = 'auto';
+    $('aiInput').style.height = Math.min($('aiInput').scrollHeight, 80) + 'px';
+  };
+
+  speechRec.onerror = (e) => {
+    console.error('Speech error:', e.error);
+    if (e.error === 'not-allowed') addAIMsg('Microphone access denied. Allow it in browser settings.','error');
+    stopVoice();
+  };
+
+  speechRec.onend = () => {
+    // Auto-restart if still listening (browser stops after silence)
+    if (isListening) { try { speechRec.start(); } catch {} }
+  };
+
+  try {
+    speechRec.start();
+    isListening = true;
+    $('micBtn').classList.add('listening');
+    $('micBtn').title = 'Stop listening';
+  } catch (e) {
+    addAIMsg('Could not start speech recognition.','error');
+  }
+}
+
+function stopVoice() {
+  isListening = false;
+  if (speechRec) { try { speechRec.stop(); } catch {} speechRec = null; }
+  $('micBtn').classList.remove('listening');
+  $('micBtn').title = 'Voice input';
+}
 
 // ══════════════════════════════════════════
 // PROJECTS
