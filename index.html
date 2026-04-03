@@ -425,10 +425,117 @@
     .task-tags { gap: 4px; }
     .tag { font-size: 10px; padding: 1px 4px; }
   }
+
+  /* ── Login Screen ── */
+  .login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: var(--bg-base); padding: 20px;
+  }
+
+  .login-card {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px; max-width: 380px; width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  .login-card .login-logo {
+    width: 48px; height: 48px; background: linear-gradient(135deg, var(--accent), #c084fc);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 20px; margin-bottom: 20px;
+  }
+
+  .login-card h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .login-card .login-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+
+  .login-card label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+
+  .login-card input[type="text"],
+  .login-card input[type="password"] {
+    width: 100%; padding: 10px 12px; background: var(--bg-base);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 14px; color: var(--text-primary); outline: none;
+    font-family: var(--font); margin-bottom: 16px;
+  }
+
+  .login-card input:focus { border-color: var(--accent); }
+
+  .login-btn {
+    width: 100%; padding: 11px; background: var(--accent); color: white;
+    border: none; border-radius: var(--radius); font-size: 14px;
+    font-weight: 600; font-family: var(--font); cursor: pointer;
+    transition: background 0.15s; margin-bottom: 12px;
+  }
+
+  .login-btn:hover { background: var(--accent-hover); }
+
+  .login-error { font-size: 12px; color: var(--danger); margin-bottom: 12px; display: none; }
+
+  .login-footer { font-size: 11px; color: var(--text-tertiary); text-align: center; line-height: 1.6; }
+
+  .login-profiles { margin-bottom: 20px; }
+  .login-profiles-title { font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+
+  .profile-btn {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius); cursor: pointer; margin-bottom: 6px;
+    font-family: var(--font); font-size: 13px; color: var(--text-primary);
+    transition: all 0.1s; text-align: left;
+  }
+
+  .profile-btn:hover { border-color: var(--accent); background: var(--accent-subtle); }
+
+  .profile-btn .profile-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); display: flex; align-items: center;
+    justify-content: center; color: white; font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .profile-btn .profile-name { flex: 1; font-weight: 500; }
+
+  .profile-btn .profile-del {
+    font-size: 11px; color: var(--text-tertiary); padding: 2px 6px;
+    border-radius: 4px; border: none; background: transparent; cursor: pointer;
+  }
+
+  .profile-btn .profile-del:hover { background: var(--danger-subtle); color: var(--danger); }
+
+  .login-divider {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+    font-size: 11px; color: var(--text-tertiary);
+  }
+
+  .login-divider::before, .login-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
 </style>
 </head>
 <body>
-<div class="layout">
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">W</div>
+    <h1>WorkHub</h1>
+    <p class="login-sub">Sign in to sync your tasks across devices</p>
+
+    <div class="login-profiles" id="loginProfiles" style="display:none;"></div>
+
+    <div id="loginForm">
+      <div class="login-divider" id="loginDivider" style="display:none;">Or create new profile</div>
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter username">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter password">
+      <div class="login-error" id="loginError"></div>
+      <button class="login-btn" onclick="handleLogin()">Sign In</button>
+      <div class="login-footer">Same username + password = same data on any device.<br>First time? Just pick a username and password to get started.</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout" id="appLayout" style="display:none;">
   <nav class="sidebar">
     <div class="sidebar-brand"><div class="logo">W</div><span>WorkHub</span></div>
 
@@ -448,6 +555,7 @@
       <div class="sync-indicator" id="syncIndicator"><span class="sync-dot"></span><span id="syncLabel">Offline</span></div>
       <button class="nav-item" onclick="openSettings()"><span class="icon">&#9881;</span> Settings</button>
       <button class="nav-item" onclick="toggleTheme()"><span class="icon">&#9790;</span> <span id="themeLabel">Light Mode</span></button>
+      <button class="nav-item" onclick="logout()" style="color:var(--danger);"><span class="icon">&#10140;</span> Sign Out</button>
     </div>
   </nav>
 
@@ -786,6 +894,15 @@ function saveSettings() {
   groqKey=$('groqKeyInput').value.trim(); localStorage.setItem('groqKey',groqKey);
   aiProvider=$('aiProviderSelect').value; localStorage.setItem('aiProvider',aiProvider);
   closeSettings(); updateSyncUI();
+
+  // Save config to profile
+  const currentUser = localStorage.getItem('currentProfile');
+  if (currentUser) {
+    const profiles = getProfiles();
+    const p = profiles.find(p => p.username === currentUser);
+    if (p) { p.firebaseUrl = firebaseUrl; p.groqKey = groqKey; p.geminiKey = geminiKey; p.aiProvider = aiProvider; p.syncId = syncId; saveProfiles(profiles); }
+  }
+
   if(firebaseUrl){pullFromCloud().then(()=>{pushToCloud();startSync();});}
 }
 $('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});
@@ -1878,11 +1995,156 @@ document.addEventListener('keydown', e => {
 });
 
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// LOGIN / PROFILES
+// ══════════════════════════════════════════
+function getProfiles() { return JSON.parse(localStorage.getItem('workhub_profiles') || '[]'); }
+function saveProfiles(p) { localStorage.setItem('workhub_profiles', JSON.stringify(p)); }
+
+async function hashCredentials(user, pass) {
+  const data = new TextEncoder().encode(user.toLowerCase().trim() + ':' + pass);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 32);
+}
+
+function renderLoginProfiles() {
+  const profiles = getProfiles();
+  const container = $('loginProfiles');
+  const divider = $('loginDivider');
+  if (!profiles.length) { container.style.display = 'none'; divider.style.display = 'none'; return; }
+
+  container.style.display = 'block';
+  divider.style.display = 'flex';
+  container.innerHTML = '<div class="login-profiles-title">Saved Profiles</div>' +
+    profiles.map((p, i) => `
+      <button class="profile-btn" onclick="quickLogin(${i})">
+        <span class="profile-avatar">${p.username.charAt(0).toUpperCase()}</span>
+        <span class="profile-name">${escHtml(p.username)}</span>
+        <span class="profile-del" onclick="event.stopPropagation();removeProfile(${i})">&#10005;</span>
+      </button>`).join('');
+}
+
+function removeProfile(i) {
+  const profiles = getProfiles();
+  profiles.splice(i, 1);
+  saveProfiles(profiles);
+  renderLoginProfiles();
+}
+
+async function quickLogin(i) {
+  const profiles = getProfiles();
+  const p = profiles[i];
+  if (!p) return;
+  // Profile stores: username, syncId, firebaseUrl, groqKey, geminiKey, aiProvider
+  syncId = p.syncId;
+  firebaseUrl = p.firebaseUrl || '';
+  groqKey = p.groqKey || '';
+  geminiKey = p.geminiKey || '';
+  aiProvider = p.aiProvider || 'groq';
+
+  localStorage.setItem('syncId', syncId);
+  localStorage.setItem('firebaseUrl', firebaseUrl);
+  localStorage.setItem('groqKey', groqKey);
+  localStorage.setItem('geminiKey', geminiKey);
+  localStorage.setItem('aiProvider', aiProvider);
+  localStorage.setItem('currentProfile', p.username);
+
+  enterApp();
+}
+
+async function handleLogin() {
+  const user = $('loginUser').value.trim();
+  const pass = $('loginPass').value;
+
+  if (!user || !pass) {
+    $('loginError').textContent = 'Please enter both username and password.';
+    $('loginError').style.display = 'block';
+    return;
+  }
+
+  if (pass.length < 4) {
+    $('loginError').textContent = 'Password must be at least 4 characters.';
+    $('loginError').style.display = 'block';
+    return;
+  }
+
+  const id = await hashCredentials(user, pass);
+  syncId = id;
+  localStorage.setItem('syncId', syncId);
+  localStorage.setItem('currentProfile', user);
+
+  // Save/update profile
+  const profiles = getProfiles();
+  const existing = profiles.find(p => p.username.toLowerCase() === user.toLowerCase());
+  if (existing) {
+    // Restore saved config
+    firebaseUrl = existing.firebaseUrl || firebaseUrl;
+    groqKey = existing.groqKey || groqKey;
+    geminiKey = existing.geminiKey || geminiKey;
+    aiProvider = existing.aiProvider || aiProvider;
+    localStorage.setItem('firebaseUrl', firebaseUrl);
+    localStorage.setItem('groqKey', groqKey);
+    localStorage.setItem('geminiKey', geminiKey);
+    localStorage.setItem('aiProvider', aiProvider);
+    existing.syncId = id;
+  } else {
+    profiles.push({ username: user, syncId: id, firebaseUrl, groqKey, geminiKey, aiProvider });
+  }
+  saveProfiles(profiles);
+
+  enterApp();
+}
+
+function enterApp() {
+  $('loginScreen').style.display = 'none';
+  $('appLayout').style.display = 'flex';
+
+  // Reload data
+  Object.assign(D, { tasks: [], projects: [], notes: [], bookmarks: [], plannerNotes: {} },
+    JSON.parse(localStorage.getItem('workhub') || '{}'));
+
+  updateSyncUI(); renderDashboard(); renderProjectSidebar(); setDefaultDueDate();
+  if (firebaseUrl) { pullFromCloud(); startSync(); }
+}
+
+function logout() {
+  // Save current profile config before logout
+  const currentUser = localStorage.getItem('currentProfile');
+  if (currentUser) {
+    const profiles = getProfiles();
+    const p = profiles.find(p => p.username === currentUser);
+    if (p) {
+      p.firebaseUrl = firebaseUrl;
+      p.groqKey = groqKey;
+      p.geminiKey = geminiKey;
+      p.aiProvider = aiProvider;
+      saveProfiles(profiles);
+    }
+  }
+
+  localStorage.removeItem('currentProfile');
+  if (syncTimer) clearInterval(syncTimer);
+  $('appLayout').style.display = 'none';
+  $('loginScreen').style.display = 'flex';
+  $('loginUser').value = '';
+  $('loginPass').value = '';
+  $('loginError').style.display = 'none';
+  renderLoginProfiles();
+}
+
+// Enter key on login form
+$('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+$('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginPass').focus(); });
+
+// ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
-if (!localStorage.getItem('syncId')) localStorage.setItem('syncId', syncId);
-updateSyncUI(); renderDashboard(); renderProjectSidebar(); setDefaultDueDate();
-if (firebaseUrl) { pullFromCloud(); startSync(); }
+// Check if already logged in
+if (localStorage.getItem('currentProfile')) {
+  enterApp();
+} else {
+  renderLoginProfiles();
+}
 </script>
 </body>
 </html>
